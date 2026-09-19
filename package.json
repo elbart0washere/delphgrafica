@@ -1,0 +1,24 @@
+{
+  "name": "delphgrafica",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Landing de Gráfica Delph (delphgrafica.com.ar)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i src/input.css -o assets/styles.css --minify",
+    "serve": "python3 -m http.server 4173",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "audit": "npx --yes lighthouse http://localhost:4173/ --only-categories=performance,accessibility --chrome-flags=--headless=new --output=json --output-path=lighthouse-report.json --quiet"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/cli": "^4.3.3",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4.3.3",
+    "vitest": "^4.1.11"
+  }
+}

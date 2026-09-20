@@ -15,7 +15,7 @@
 
   <link rel="icon" type="image/png" href="assets/favicon.png?v=c37792cb">
   <link rel="preload" href="assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles.css?v=a14ca827">
+  <link rel="stylesheet" href="assets/styles.css?v=322237f1">
   <noscript><style>.js-only{display:none}</style></noscript>
   <script type="importmap">{"imports":{"./js/dialog.js":"./js/dialog.js?v=a48be172","./js/form-logic.js":"./js/form-logic.js?v=a48be172","./js/form.js":"./js/form.js?v=a48be172","./js/video.js":"./js/video.js?v=a48be172"}}</script>
   <script type="module" src="js/main.js?v=a48be172"></script>
@@ -150,7 +150,7 @@
 
     <section class="block" id="cotizar" tabindex="-1" aria-labelledby="cotizar-titulo" style="outline:none">
       <div class="wrap contact-grid">
-        <div>
+        <div class="contact-info">
           <p class="eyebrow">Contacto</p>
           <h2 id="cotizar-titulo" class="title">Contanos qué necesitás</h2>
           <p class="lead" style="color:var(--color-muted);margin-top:16px">Completá el formulario y seguimos la charla por WhatsApp. O escribinos directo, como te quede más cómodo.</p>
@@ -166,10 +166,6 @@
             <div><svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg> Paso del Rey, Moreno</div>
             <div><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg> clientes@delphgrafica.com.ar</div>
             <div><svg class="i" aria-hidden="true"><use href="#i-truck"/></svg> Envíos a todo el país</div>
-          </div>
-          <div class="map">
-            <iframe class="map-frame" tabindex="-1" title="Mapa: Delph Grafica, en Paso del Rey, Moreno" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.019003354103!2d-58.7464846238515!3d-34.62896005883241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bc95023dc15ccf%3A0x496729335aef544c!2sDelph%20Grafica!5e0!3m2!1ses-419!2sar!4v1789938352021!5m2!1ses-419!2sar" width="600" height="320" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-            <a class="btn btn-line" href="https://www.google.com/maps/dir/?api=1&amp;destination=-34.62896%2C-58.74648" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg> Cómo llegar</a>
           </div>
         </div>
 
@@ -210,6 +206,10 @@
           <p id="estado" role="status" class="hint field-error" style="border:0;padding:0;font-weight:400"></p>
           <p class="privacy">Tus datos solo se usan para armar el mensaje de WhatsApp: no se guardan en este sitio.</p>
         </form>
+        <div class="map">
+          <iframe class="map-frame" tabindex="-1" title="Mapa: Delph Grafica, en Paso del Rey, Moreno" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.019003354103!2d-58.7464846238515!3d-34.62896005883241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bc95023dc15ccf%3A0x496729335aef544c!2sDelph%20Grafica!5e0!3m2!1ses-419!2sar!4v1789938352021!5m2!1ses-419!2sar" width="600" height="320" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          <a class="btn btn-line" href="https://www.google.com/maps/dir/?api=1&amp;destination=-34.62896%2C-58.74648" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg> Cómo llegar</a>
+        </div>
       </div>
     </section>
   </main>

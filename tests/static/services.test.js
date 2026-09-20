@@ -4,7 +4,7 @@ import { WA, document, textOf, waText } from '../helpers/page.js';
 const EXPECTED = [
   ['Impresión en gran formato', 'Lonas, vinilos, cartelería y materiales especiales para tu local, tu evento o tu campaña.'],
   ['Impresión digital', 'Folletería y tarjetas de presentación con tu marca.'],
-  ['Laminados', 'Placas rígidas en PVC, PAI, alto impacto, espumado y corrugado.'],
+  ['Laminados', 'Placas rígidas en PVC, alto impacto, espumado y corrugado.'],
   ['Merchandising y packaging corporativo', 'Productos y envases con la identidad de tu empresa.'],
 ];
 

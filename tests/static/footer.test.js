@@ -12,6 +12,10 @@ describe('footer', () => {
     expect(text).toContain(EMAIL);
   });
 
+  it('avisa que hay envíos a todo el país', () => {
+    expect(text).toContain('Envíos a todo el país');
+  });
+
   it('US5-S2: Instagram abre el perfil en una pestaña nueva', () => {
     const link = footer.querySelector('a[aria-label="Instagram"]');
     expect(link.getAttribute('href')).toBe(IG);

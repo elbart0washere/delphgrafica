@@ -17,6 +17,7 @@ describe('datos estructurados del negocio (SEO local)', () => {
     expect(data.email).toBe(EMAIL);
     expect(data.telephone).toBe('+5491172394787');
     expect(data.sameAs).toEqual([IG]);
+    expect(data.areaServed).toEqual({ '@type': 'Country', name: 'Argentina' });
     expect(data.image).toMatch(/^https:\/\/delphgrafica\.com\.ar\/assets\/.+\.(png|jpg)$/);
   });
 
@@ -45,6 +46,7 @@ describe('datos estructurados del negocio (SEO local)', () => {
     expect(visible).toContain(data.email);
     expect(visible).toContain(data.address.addressLocality);
     expect(visible).toContain('Lunes a viernes de 9 a 18 h');
+    expect(visible).toContain('Envíos a todo el país'); // respalda areaServed
     expect(document.querySelector(`a[href="${data.sameAs[0]}"]`)).not.toBeNull();
     expect(document.querySelector(`a[href^="https://wa.me/${data.telephone.slice(1)}"]`)).not.toBeNull();
   });

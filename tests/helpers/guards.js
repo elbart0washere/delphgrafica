@@ -1,7 +1,10 @@
 import { JSDOM } from 'jsdom';
 
 // Ids de los únicos elementos que pueden llevar el acento como color propio (regla 16).
-export const ACCENT_ALLOWED_IDS = ['cta-hero', 'btn-enviar', 'btn-modal-whatsapp'];
+export const ACCENT_ALLOWED_IDS = ['cta-hero', 'btn-enviar', 'btn-modal-whatsapp', 'btn-ig-banner'];
+
+// Clases que pintan un elemento con el acento (el botón principal `btn-cta` o cualquier utilidad `*accent*`).
+const isAccentClass = (token) => token === 'btn-cta' || token.includes('accent');
 
 const STATE_PREFIXES = ['hover:', 'focus:', 'focus-visible:', 'focus-within:', 'active:'];
 
@@ -47,9 +50,9 @@ export function findNonVoseo(text) {
 export function findAccentMisuse(html, allowedIds = ACCENT_ALLOWED_IDS) {
   const misused = [];
   for (const element of parse(html).querySelectorAll('[class]')) {
-    const usesAccent = element.className
+    const usesAccent = (element.getAttribute('class') ?? '')
       .split(/\s+/)
-      .some((token) => token.includes('accent') && !STATE_PREFIXES.some((prefix) => token.startsWith(prefix)));
+      .some((token) => isAccentClass(token) && !STATE_PREFIXES.some((prefix) => token.startsWith(prefix)));
     if (usesAccent && !allowedIds.includes(element.id)) misused.push(element.id || element.tagName.toLowerCase());
   }
   return misused;

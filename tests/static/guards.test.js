@@ -42,6 +42,8 @@ describe('los detectores detectan (fixtures que violan la regla)', () => {
     const violating = '<div id="decoracion" class="bg-accent"></div><a id="cta-hero" class="bg-accent"></a>';
     expect(findAccentMisuse(violating)).toEqual(['decoracion']);
     expect(findAccentMisuse('<a class="hover:bg-accent focus-visible:ring-accent"></a>')).toEqual([]);
+    expect(findAccentMisuse('<a id="otro" class="btn btn-cta"></a>')).toEqual(['otro']);
+    expect(findAccentMisuse('<a id="btn-ig-banner" class="btn btn-cta"></a>')).toEqual([]);
   });
 });
 

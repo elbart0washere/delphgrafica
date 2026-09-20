@@ -178,6 +178,7 @@ test('US1-regla10: enviar no manda datos a ningún servidor', async ({ page }) =
   const DATA_REQUESTS = ['fetch', 'xhr', 'ping', 'websocket', 'eventsource'];
   const requests = [];
   page.on('request', (request) => {
+    if (request.frame() !== page.mainFrame()) return; // un iframe de terceros no lleva datos del formulario
     if (request.method() !== 'GET' || DATA_REQUESTS.includes(request.resourceType())) requests.push(`${request.method()} ${request.url()}`);
   });
   await fillForm(page, lucia);

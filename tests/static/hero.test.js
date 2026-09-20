@@ -35,12 +35,12 @@ describe('hero', () => {
 
   it('hay un título principal y el logo con texto alternativo', () => {
     expect(document.querySelectorAll('h1')).toHaveLength(1);
-    expect(textOf(document.querySelector('h1'))).toMatch(/rápida y precisa/i);
+    expect(textOf(document.querySelector('h1'))).toBe('Hola, somos Delph.');
   });
 
   it('el texto de presentación es el que pidió el negocio', () => {
     expect(textOf(document.querySelector('.hero .lead'))).toBe(
-      'Cartelería, lonas, vinilos impresos y de corte, impresión digital, laminados, estructuras y merchandising. Contanos qué necesitás y lo cotizamos por WhatsApp.',
+      'Calcos, lonas y merch con tu marca, hechos en nuestro taller, con envíos a todo el país.',
     );
   });
 

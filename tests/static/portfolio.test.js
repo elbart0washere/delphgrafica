@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { IG, document, textOf } from '../helpers/page.js';
 
-const TITLES = ['Cartelería', 'Lonas', 'Impresión digital', 'Laminados', 'Merchandising', 'Packaging', 'Estructuras'];
+const TITLES = ['Cartelería', 'Lonas', 'Impresión digital', 'Laminados', 'Merchandising', 'Calcos', 'Estructuras'];
 
 describe('portfolio', () => {
   const tiles = [...document.querySelectorAll('#trabajos .mosaic .tile')];
@@ -20,6 +20,14 @@ describe('portfolio', () => {
     expect(banner.getAttribute('target')).toBe('_blank');
     expect(banner.getAttribute('rel')).toContain('noopener');
     expect(textOf(document.querySelector('.ig-banner'))).toContain('Mirá nuestros trabajos más recientes en Instagram');
+  });
+
+  it('el botón del banner invita a seguir en Instagram por las promos mensuales', () => {
+    expect(textOf(document.querySelector('#btn-ig-banner'))).toBe('Seguinos en Instagram para conocer todas las promos mensuales');
+  });
+
+  it('Packaging ya no es un bloque del portfolio', () => {
+    expect(tiles.map((tile) => textOf(tile.querySelector('.tile-label')))).not.toContain('Packaging');
   });
 
   it('US4-S5: reemplazar el ícono de un bloque por una foto no cambia el bloque ni el grid', () => {

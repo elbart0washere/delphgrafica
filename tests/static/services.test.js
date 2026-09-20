@@ -3,9 +3,9 @@ import { WA, document, textOf, waText } from '../helpers/page.js';
 
 const EXPECTED = [
   ['Impresión en gran formato', 'Lonas, vinilos, cartelería y materiales especiales para tu local, tu evento o tu campaña.'],
-  ['Impresión digital', 'Folletería y tarjetas de presentación con tu marca.'],
+  ['Impresión digital', 'Folletería, tarjetas de presentación, tags y todo lo que necesitás para tu marca.'],
   ['Laminados', 'Placas rígidas en PVC, alto impacto, espumado y corrugado.'],
-  ['Merchandising y packaging corporativo', 'Productos y envases con la identidad de tu empresa.'],
+  ['Merchandising y cositas corporativas', 'Remeras, pines, calcos y más, todo para destacar la identidad de tu empresa.'],
 ];
 
 describe('servicios', () => {

@@ -27,4 +27,9 @@ sips --resampleHeight 540 "$TMP/trim.png" --out "$TMP/og.png" >/dev/null
 sips --padToHeightWidth 630 1200 --padColor FFFFFF "$TMP/og.png" --out "$TMP/og-pad.png" >/dev/null
 sips -s format jpeg -s formatOptions 88 "$TMP/og-pad.png" --out "$OUT/og.jpg" >/dev/null
 
+# Logo blanco del pie (fondo oscuro), sin la tarjeta blanca. Fuente: src/logo-blanco-original.png (1695×2000, transparente);
+# el logo ocupa 1358×1826 px desde (124, 52), se recorta con 12 px de aire y se achica a 200 px de ancho.
+sips --cropToHeightWidth 1850 1382 --cropOffset 40 112 "src/logo-blanco-original.png" --out "$TMP/blanco.png" >/dev/null
+sips --resampleWidth 200 "$TMP/blanco.png" --out "$OUT/logo-blanco.png" >/dev/null
+
 echo "Assets generados en $OUT/"

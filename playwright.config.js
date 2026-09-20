@@ -11,7 +11,7 @@ export default defineConfig({
     locale: 'es-AR',
   },
   webServer: {
-    command: `python3 -m http.server ${PORT}`,
+    command: `node scripts/serve.mjs ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: true,
   },

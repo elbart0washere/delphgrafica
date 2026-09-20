@@ -15,7 +15,7 @@ const defaultRead = (path) => readFileSync(new URL(path, root));
 // La fuente no se versiona: se precarga y la pide el CSS, y las dos URLs tienen que ser idénticas
 // (si no, el navegador la descarga dos veces). Si cambia, se renombra el archivo.
 const UNVERSIONED = ['assets/fonts/'];
-const LOCAL_URL = /(\b(?:href|src)=")((?:assets|js)\/[^"?#]+)(?:\?v=[0-9a-f]+)?(")/g;
+const LOCAL_URL = /(\b(?:href|src|poster)=")((?:assets|js)\/[^"?#]+)(?:\?v=[0-9a-f]+)?(")/g;
 
 const hash = (...buffers) => {
   const digest = createHash('sha1');

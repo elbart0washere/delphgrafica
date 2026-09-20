@@ -22,6 +22,9 @@ describe('URLs versionadas por contenido (evita mezclar HTML nuevo con CSS o JS 
       ...[...document.querySelectorAll('img')].map((img) => img.getAttribute('src')),
     ];
     for (const url of urls) expect(url, url).toMatch(/\?v=[0-9a-f]{8}$/);
+    for (const attr of ['data-src', 'data-poster']) {
+      expect(document.querySelector('[data-clip] video').getAttribute(attr), attr).toMatch(/\?v=[0-9a-f]{8}$/);
+    }
   });
 
   it('el mapa de importación versiona cada módulo, para que main.js no cargue módulos viejos', () => {

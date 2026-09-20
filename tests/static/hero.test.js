@@ -38,11 +38,18 @@ describe('hero', () => {
     expect(textOf(document.querySelector('h1'))).toMatch(/rápida y precisa/i);
   });
 
-  it('tiene WhatsApp directo e Instagram', () => {
-    const whatsapp = document.querySelector('#wa-hero');
-    expect(whatsapp.getAttribute('href').startsWith(WA)).toBe(true);
-    expect(textOf(whatsapp)).toContain('WhatsApp');
-    expect(document.querySelector('.hero a[href="' + IG + '"]')).not.toBeNull();
+  it('el texto de presentación es el que pidió el negocio', () => {
+    expect(textOf(document.querySelector('.hero .lead'))).toBe(
+      'Cartelería, lonas, vinilos impresos y de corte, impresión digital, laminados, estructuras y merchandising. Contanos qué necesitás y lo cotizamos por WhatsApp.',
+    );
+  });
+
+  it('el hero no tiene "WhatsApp directo" ni el enlace a Instagram: el foco es el CTA (Instagram y WhatsApp siguen en el encabezado)', () => {
+    expect(document.querySelector('#wa-hero')).toBeNull();
+    expect(textOf(document.querySelector('.hero'))).not.toContain('WhatsApp directo');
+    expect(document.querySelector('.hero a[href="' + IG + '"]')).toBeNull();
+    expect(document.querySelector('header a[href="' + IG + '"]')).not.toBeNull();
+    expect(document.querySelector('header a[href^="' + WA + '"]')).not.toBeNull();
   });
 });
 

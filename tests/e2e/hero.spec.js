@@ -17,6 +17,17 @@ test('US2-S1: en un celular de 360 px se ve todo sin scrollear', async ({ page }
   await expect(page.locator('#cta-hero')).toHaveText('Cotizá tu proyecto');
 });
 
+test('el CTA es ancho, para que sea la acción principal', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  expect((await page.locator('#cta-hero').boundingBox()).width).toBeGreaterThanOrEqual(380);
+
+  await page.setViewportSize({ width: 360, height: 740 });
+  const mobile = await page.locator('#cta-hero').boundingBox();
+  expect(mobile.width).toBeGreaterThanOrEqual(360 * 0.8);
+  expect(mobile.height).toBeGreaterThanOrEqual(56);
+});
+
 test('US2-S2: tocar el CTA lleva al formulario y mueve el foco a esa sección', async ({ page }) => {
   await page.locator('#cta-hero').click();
   await expect(page.locator('#cotizar')).toBeInViewport();

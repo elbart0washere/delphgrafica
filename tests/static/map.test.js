@@ -18,6 +18,13 @@ describe('mapa de Google en la sección Contacto', () => {
     expect(frame.getAttribute('loading')).toBe('lazy');
   });
 
+  it('viene después del formulario en el HTML (orden de lectura y de tabulación en pantallas angostas)', () => {
+    const form = document.querySelector('#form-cotizar');
+    const FOLLOWING = 4; // Node.DOCUMENT_POSITION_FOLLOWING
+    expect(form.compareDocumentPosition(map) & FOLLOWING).toBeTruthy();
+    expect(map.closest('.contact-grid')).not.toBeNull();
+  });
+
   it('queda fuera del orden de tabulación: el teclado no queda atrapado ni pierde el indicador de foco', () => {
     // El foco entra "adentro" del mapa de Google y el iframe no muestra contorno. Lo que hace el mapa (llegar) lo cubre
     // el botón "Cómo llegar", que sí es enfocable, y la dirección está escrita en el texto.

@@ -140,11 +140,15 @@
   .ig-banner span { color: #cfcfcf; display: block; }
 
   /* Contacto y formulario */
-  .contact-grid { display: grid; grid-template-columns: 5fr 6fr; gap: 64px; align-items: start; }
+  /* Escritorio: la información y el mapa a la izquierda, el formulario a la derecha. En pantallas angostas el orden es
+     información, formulario y mapa (el mapa no debe cortar el camino entre el texto y el formulario). */
+  .contact-grid { display: grid; grid-template-columns: 5fr 6fr; grid-template-rows: auto 1fr; grid-template-areas: "info form" "map form"; gap: 32px 64px; align-items: start; }
+  .contact-info { grid-area: info; }
+  .contact-grid > form { grid-area: form; }
   .direct { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; align-items: flex-start; }
   .facts { margin-top: 28px; display: grid; gap: 10px; color: var(--color-muted); font-size: .95rem; }
   .facts div { display: flex; gap: 10px; align-items: center; }
-  .map { margin-top: 28px; display: grid; gap: 12px; justify-items: start; }
+  .map { grid-area: map; display: grid; gap: 12px; justify-items: start; width: 100%; }
   .map-frame { display: block; width: 100%; height: 320px; border: 0; background: var(--color-mist); }
   .notice { margin-top: 24px; border: 2px solid var(--color-ink); border-radius: 2px; padding: 16px; }
   .card { background: #fff; padding: clamp(20px, 3vw, 40px); display: grid; gap: 18px; box-shadow: 0 1px 0 #e3e3e3, 0 24px 48px -32px rgba(0, 0, 0, .25); }
@@ -198,7 +202,8 @@
     .hero { grid-template-columns: 1fr; min-height: 0; }
     .hero-art { padding: 24px; }
     .hero-art img { width: min(60%, 240px); }
-    .works-grid, .contact-grid { grid-template-columns: 1fr; gap: 32px; }
+    .works-grid { grid-template-columns: 1fr; gap: 32px; }
+    .contact-grid { grid-template-columns: 1fr; grid-template-rows: none; grid-template-areas: "info" "form" "map"; gap: 32px; }
     .mosaic { grid-template-columns: repeat(2, 1fr); grid-template-rows: none; grid-auto-rows: 130px; }
     .tile-a, .tile-b, .tile-c, .tile-d, .tile-e, .tile-f, .tile-g { grid-column: auto; grid-row: auto; }
     .tile-a, .tile-d, .tile-g { grid-column: 1 / 3; }

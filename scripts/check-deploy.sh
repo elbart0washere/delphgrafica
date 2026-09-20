@@ -11,7 +11,9 @@ check() {
   if "$@" >/dev/null 2>&1; then echo "  ok   $label"; else echo "  FALLA $label"; FAILED=1; fi
 }
 
-body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
+# Se guarda el cuerpo en una variable: con `curl | grep -q` y pipefail, grep cierra la tubería al primer acierto
+# y curl termina con error (SIGPIPE), lo que daría un falso negativo.
+body_has() { local body; body="$(curl -fsS --max-time 20 "$1")" || return 1; grep -q "$2" <<<"$body"; }
 redirects_to() { [ "$(curl -sS --max-time 20 -o /dev/null -w '%{redirect_url}' "$1")" = "$2" ]; }
 status_is() { [ "$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' "$1")" = "$2" ]; }
 

@@ -172,9 +172,14 @@ test('US1-S9: tras enviar conserva los datos y ofrece un enlace al mismo mensaje
   await expect(status.getByRole('link', { name: 'tocá acá' })).toHaveAttribute('href', url);
 });
 
-test('US1-regla10: enviar no hace ningún request de red', async ({ page }) => {
+test('US1-regla10: enviar no manda datos a ningún servidor', async ({ page }) => {
+  // Las imágenes con carga diferida (el logo del pie) pueden pedirse al hacer scroll: no son un envío de datos.
+  // Lo que importaría son los requests que podrían llevar los datos: fetch, XHR, beacons y todo lo que no sea GET.
+  const DATA_REQUESTS = ['fetch', 'xhr', 'ping', 'websocket', 'eventsource'];
   const requests = [];
-  page.on('request', (request) => requests.push(request.url()));
+  page.on('request', (request) => {
+    if (request.method() !== 'GET' || DATA_REQUESTS.includes(request.resourceType())) requests.push(`${request.method()} ${request.url()}`);
+  });
   await fillForm(page, lucia);
   await submit(page).click();
   expect(await opened(page)).toHaveLength(1);

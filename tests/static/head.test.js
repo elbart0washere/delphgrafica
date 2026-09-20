@@ -28,12 +28,12 @@ describe('<head> del documento (regla 25)', () => {
 
   it('enlaza favicon, CSS compilado, y precarga la fuente', () => {
     expect(document.querySelector('link[rel="icon"]')).not.toBeNull();
-    expect(document.querySelector('link[rel="stylesheet"][href="assets/styles.css"]')).not.toBeNull();
+    expect(document.querySelector('link[rel="stylesheet"][href^="assets/styles.css"]')).not.toBeNull();
     expect(document.querySelector('link[rel="preload"][as="font"][type="font/woff2"]')).not.toBeNull();
   });
 
   it('carga el JS como módulo', () => {
-    expect(document.querySelector('script[type="module"][src="js/main.js"]')).not.toBeNull();
+    expect(document.querySelector('script[type="module"][src^="js/main.js"]')).not.toBeNull();
   });
 
   it('oculta lo que requiere JavaScript cuando no hay JavaScript (regla 26)', () => {

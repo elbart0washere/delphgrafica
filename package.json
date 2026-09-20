@@ -12,7 +12,9 @@
     "serve": "python3 -m http.server 4173",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "audit": "npx --yes lighthouse http://localhost:4173/ --only-categories=performance,accessibility --chrome-flags=--headless=new --output=json --output-path=lighthouse-report.json --quiet"
+    "audit": "npx --yes lighthouse http://localhost:4173/ --only-categories=performance,accessibility --chrome-flags=--headless=new --output=json --output-path=lighthouse-report.json --quiet",
+    "build": "npm run build:css && node scripts/stamp.mjs",
+    "stamp": "node scripts/stamp.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

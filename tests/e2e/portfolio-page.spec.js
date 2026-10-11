@@ -1,4 +1,12 @@
+import { readdirSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
+
+// Las cantidades salen de los archivos publicados, no de números fijos: así agregar o quitar una foto no rompe estos tests,
+// y si el HTML y la carpeta no coinciden, fallan.
+const listed = (dir, ext) => readdirSync(new URL(`../../assets/${dir}/`, import.meta.url)).filter((file) => file.endsWith(ext));
+const PHOTOS = listed('portfolio', '.jpg').length;
+const VIDEOS = listed('portfolio-videos', '.mp4').length;
+const TOTAL = PHOTOS + VIDEOS;
 
 const srcs = (page) => page.locator('.gallery img').evaluateAll((imgs) => imgs.map((img) => img.getAttribute('src')));
 
@@ -17,10 +25,10 @@ test('el orden cambia entre visitas pero siempre están todas las fotos', async 
     const order = await srcs(page);
     orders.add(order.join('|'));
     all = [...order].sort().join('|');
-    expect(order).toHaveLength(18);
+    expect(order).toHaveLength(PHOTOS);
   }
   expect(orders.size).toBeGreaterThan(1);
-  expect(new Set(all.split('|')).size).toBe(18);
+  expect(new Set(all.split('|')).size).toBe(PHOTOS);
 });
 
 test('al tocar una foto se abre ampliada y se navega con teclado y botones', async ({ page }) => {
@@ -30,24 +38,25 @@ test('al tocar una foto se abre ampliada y se navega con teclado y botones', asy
   await page.locator('.gallery button').first().click();
   await expect(visor).toBeVisible();
   await expect(visor.locator('img')).toHaveAttribute('src', new RegExp(first.split('?')[0]));
-  await expect(visor.locator('[data-visor-contador]')).toHaveText('1 de 20');
+  await expect(visor.locator('[data-visor-contador]')).toHaveText(`1 de ${TOTAL}`);
 
   await page.keyboard.press('ArrowRight');
-  await expect(visor.locator('[data-visor-contador]')).toHaveText('2 de 20');
+  await expect(visor.locator('[data-visor-contador]')).toHaveText(`2 de ${TOTAL}`);
   await visor.locator('[data-visor-anterior]').click();
   await visor.locator('[data-visor-anterior]').click();
-  await expect(visor.locator('[data-visor-contador]')).toHaveText('20 de 20');
+  await expect(visor.locator('[data-visor-contador]')).toHaveText(`${TOTAL} de ${TOTAL}`);
 
   await page.keyboard.press('Escape');
   await expect(visor).toBeHidden();
   await expect(page.locator('.gallery button').first()).toBeFocused();
 });
 
-test('sin JavaScript se ven las 18 fotos y los 2 videos en el orden del HTML', async ({ browser }) => {
+test('sin JavaScript se ven todas las fotos y los videos en el orden del HTML', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, baseURL: 'http://localhost:4173' });
   const page = await context.newPage();
   await page.goto('/portfolio.html');
-  await expect(page.locator('.gallery img')).toHaveCount(18);
+  await expect(page.locator('.gallery img')).toHaveCount(PHOTOS);
+  await expect(page.locator('.gallery video')).toHaveCount(VIDEOS);
   await context.close();
 });
 

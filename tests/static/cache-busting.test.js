@@ -1,17 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { document, html } from '../helpers/page.js';
-import { jsVersion, stampHtml } from '../../scripts/stamp.mjs';
+import { ENTRIES, PAGES, jsVersion, stampHtml } from '../../scripts/stamp.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root));
-const modules = readdirSync(new URL('js/', root)).filter((file) => file.endsWith('.js') && file !== 'main.js');
+const modules = readdirSync(new URL('js/', root)).filter((file) => file.endsWith('.js') && !ENTRIES.includes(file));
 
 // Cloudflare le pone 4 horas de caché al navegador a todo lo estático. Sin versionar las URLs, quien ya visitó
 // el sitio recibe el HTML nuevo con el CSS viejo (sitio sin estilos). Por eso cada URL lleva el hash de su contenido.
 describe('URLs versionadas por contenido (evita mezclar HTML nuevo con CSS o JS viejos)', () => {
-  it('index.html está sellado con los hashes actuales (correr `npm run build` si falla)', () => {
-    expect(stampHtml(html, read)).toBe(html);
+  it.each(PAGES)('%s está sellado con los hashes actuales (correr `npm run build` si falla)', (page) => {
+    const source = readFileSync(new URL(page, root), 'utf8');
+    expect(stampHtml(source, read)).toBe(source);
   });
 
   it('el CSS, el JS de entrada y las imágenes locales llevan ?v=', () => {

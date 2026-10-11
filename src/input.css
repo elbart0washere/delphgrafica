@@ -2,6 +2,7 @@
    propio assets/styles.css y los tests), y el CSS compilado arrastra clases que ya no se usan. */
 @import "tailwindcss" source(none);
 @source "../index.html";
+@source "../portfolio.html";
 @source "../js";
 
 /* Paleta medida del logo (colores planos y exactos). El acento es el magenta del logo (#eb078d) apenas
@@ -68,6 +69,8 @@
   .btn-wa:hover { filter: brightness(1.12); }
   .btn-ghost { border-color: rgba(255, 255, 255, .55); color: #fff; }
   .btn-ghost:hover { background: rgba(255, 255, 255, .1); }
+  .btn-ink { background: var(--color-ink); color: #fff; }
+  .btn-ink:hover { filter: brightness(1.5); }
   .btn-line { border-color: var(--color-ink); color: var(--color-ink); background: transparent; }
   .btn-line:hover { background: var(--color-ink); color: #fff; }
   .icon-btn { display: inline-grid; place-items: center; width: 48px; height: 48px; border: 2px solid var(--color-ink); border-radius: 50%; text-decoration: none; }
@@ -120,6 +123,7 @@
   .clip-toggle { position: absolute; top: 8px; right: 16px; z-index: 3; min-height: 44px; padding: 0 1rem; font-size: .875rem; background: #fff; }
   .works-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; padding-bottom: clamp(56px, 8vw, 112px); }
   .works-copy { background: #fff; padding: clamp(20px, 3vw, 32px); }
+  .works-actions { display: flex; flex-wrap: wrap; gap: 12px; }
   .works-copy p:not(.eyebrow) { color: var(--color-muted); margin: 16px 0 24px; max-width: 36ch; }
   .mosaic { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(3, 150px); }
   .tile { position: relative; padding: 18px; overflow: hidden; transition: transform .25s ease; }
@@ -138,6 +142,25 @@
   .ig-banner strong { font-size: 1.25rem; }
   .ig-banner .btn { max-width: 28rem; padding-top: 12px; padding-bottom: 12px; text-align: left; }
   .ig-banner span { color: #cfcfcf; display: block; }
+
+  /* Portfolio (portfolio.html): grilla cuadrada que recorta con object-fit, y visor en <dialog> nativo */
+  .gallery-intro { color: var(--color-muted); margin: 16px 0 40px; max-width: 52ch; }
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; list-style: none; padding: 0; }
+  .shot { display: block; width: 100%; aspect-ratio: 1; padding: 0; border: 0; background: var(--color-mist); cursor: zoom-in; overflow: hidden; }
+  .shot img, .shot video { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s ease; }
+  .shot:hover img, .shot:hover video { transform: scale(1.04); }
+  .gallery-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 48px; }
+  dialog#visor { margin: auto; padding: 0; border: 0; background: transparent; max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; }
+  dialog#visor::backdrop { background: rgba(0, 0, 0, .88); }
+  .visor-box { position: relative; width: 100%; height: 100%; display: grid; place-items: center; padding: 64px 16px; }
+  .visor-box [hidden] { display: none; }
+  .visor-box img, .visor-box video { max-width: 100%; max-height: calc(100vh - 128px); width: auto; height: auto; object-fit: contain; }
+  .visor-btn { position: absolute; display: grid; place-items: center; width: 48px; height: 48px; border: 2px solid #fff; border-radius: 50%; background: rgba(0, 0, 0, .5); color: #fff; cursor: pointer; }
+  .visor-btn:hover { background: #fff; color: var(--color-ink); }
+  .visor-close { top: 12px; right: 12px; }
+  .visor-prev { left: 12px; top: 50%; transform: translateY(-50%); }
+  .visor-next { right: 12px; top: 50%; transform: translateY(-50%); }
+  .visor-count { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: #fff; font-size: .875rem; }
 
   /* Contacto y formulario */
   /* Escritorio: la información y el mapa a la izquierda, el formulario a la derecha. En pantallas angostas el orden es
@@ -190,6 +213,8 @@
   @media (prefers-reduced-motion: reduce) {
     .tile { transition: none; }
     .tile:hover { transform: none; }
+    .shot img, .shot video { transition: none; }
+    .shot:hover img, .shot:hover video { transform: none; }
   }
 
   @media (max-width: 1100px) {
@@ -216,6 +241,8 @@
   }
 
   @media (max-width: 640px) {
+    .gallery { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .visor-box { padding: 64px 8px; }
     .map-frame { height: 260px; }
     .services { grid-template-columns: 1fr; gap: 36px; }
   }

@@ -24,6 +24,9 @@ const hash = (...buffers) => {
 };
 
 const modules = () => readdirSync(new URL('js/', root)).filter((file) => file.endsWith('.js')).sort();
+// Cada página HTML tiene su módulo de entrada (main.js, portfolio.js); solo los demás van en el mapa de importación.
+export const ENTRIES = ['main.js', 'portfolio.js'];
+export const PAGES = ['index.html', 'portfolio.html'];
 
 /** Versión de todo el grafo de módulos JS: si cambia cualquiera, cambia para todos. */
 export function jsVersion(read = defaultRead) {
@@ -34,7 +37,7 @@ export function jsVersion(read = defaultRead) {
 // resolvería sin `?v=` y podría servir desde su caché en una versión vieja.
 function importMap(version) {
   const imports = Object.fromEntries(
-    modules().filter((file) => file !== 'main.js').map((file) => [`./js/${file}`, `./js/${file}?v=${version}`]),
+    modules().filter((file) => !ENTRIES.includes(file)).map((file) => [`./js/${file}`, `./js/${file}?v=${version}`]),
   );
   return `<script type="importmap">${JSON.stringify({ imports })}</script>`;
 }
@@ -54,12 +57,14 @@ export function stampHtml(html, read = defaultRead) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const path = fileURLToPath(new URL('index.html', root));
-  const before = readFileSync(path, 'utf8');
-  const after = stampHtml(before);
-  if (after === before) console.log('index.html ya estaba sellado');
-  else {
-    writeFileSync(path, after);
-    console.log('index.html sellado');
+  for (const page of PAGES) {
+    const path = fileURLToPath(new URL(page, root));
+    const before = readFileSync(path, 'utf8');
+    const after = stampHtml(before);
+    if (after === before) console.log(`${page} ya estaba sellado`);
+    else {
+      writeFileSync(path, after);
+      console.log(`${page} sellado`);
+    }
   }
 }

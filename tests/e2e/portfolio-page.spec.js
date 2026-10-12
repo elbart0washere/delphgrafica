@@ -34,21 +34,25 @@ test('el orden cambia entre visitas pero siempre están todas las fotos', async 
 test('al tocar una foto se abre ampliada y se navega con teclado y botones', async ({ page }) => {
   await page.goto('/portfolio.html');
   const visor = page.locator('#visor');
-  const first = (await srcs(page))[0];
-  await page.locator('.gallery button').first().click();
+  const counter = visor.locator('[data-visor-contador]');
+  // El orden es aleatorio y hay videos mezclados: se toca la primera foto que haya, sea cual sea su posición.
+  const photo = page.locator('.gallery button:has(img)').first();
+  const position = await photo.evaluate((button) => [...document.querySelectorAll('.gallery button')].indexOf(button)) + 1;
+  const src = (await photo.locator('img').getAttribute('src')).split('?')[0];
+  await photo.click();
   await expect(visor).toBeVisible();
-  await expect(visor.locator('img')).toHaveAttribute('src', new RegExp(first.split('?')[0]));
-  await expect(visor.locator('[data-visor-contador]')).toHaveText(`1 de ${TOTAL}`);
+  await expect(visor.locator('img')).toHaveAttribute('src', new RegExp(src));
+  await expect(counter).toHaveText(`${position} de ${TOTAL}`);
 
+  const next = (position % TOTAL) + 1;
   await page.keyboard.press('ArrowRight');
-  await expect(visor.locator('[data-visor-contador]')).toHaveText(`2 de ${TOTAL}`);
+  await expect(counter).toHaveText(`${next} de ${TOTAL}`);
   await visor.locator('[data-visor-anterior]').click();
-  await visor.locator('[data-visor-anterior]').click();
-  await expect(visor.locator('[data-visor-contador]')).toHaveText(`${TOTAL} de ${TOTAL}`);
+  await expect(counter).toHaveText(`${position} de ${TOTAL}`);
 
   await page.keyboard.press('Escape');
   await expect(visor).toBeHidden();
-  await expect(page.locator('.gallery button').first()).toBeFocused();
+  await expect(photo).toBeFocused();
 });
 
 test('sin JavaScript se ven todas las fotos y los videos en el orden del HTML', async ({ browser }) => {
@@ -75,8 +79,11 @@ test('al tocar un video se abre ampliado en el visor, con controles, y se pausa 
   expect(await visor.locator('video').getAttribute('controls')).not.toBeNull();
   expect(await visor.locator('video').getAttribute('src')).toMatch(/portfolio-videos\/.+\.mp4/);
 
+  // Con el orden aleatorio lo que sigue puede ser otro video o una foto: solo importa que el contador avance.
+  const counter = visor.locator('[data-visor-contador]');
+  const before = await counter.textContent();
   await page.keyboard.press('ArrowRight');
-  await expect.poll(() => visor.locator('video').isHidden() || visor.locator('img').isHidden()).toBe(true);
+  await expect(counter).not.toHaveText(before);
   await page.keyboard.press('Escape');
   await expect(visor).toBeHidden();
   expect(await visor.locator('video').evaluate((v) => v.paused)).toBe(true);

@@ -6,7 +6,7 @@ describe('encabezado', () => {
     const header = document.querySelector('header');
     expect(header.querySelector('img[alt="Gráfica Delph"]')).not.toBeNull();
     const anchors = [...header.querySelectorAll('nav a')].map((a) => a.getAttribute('href'));
-    expect(anchors).toEqual(['#servicios', '#trabajos', '#cotizar']);
+    expect(anchors).toEqual(['#servicios', 'portfolio.html', '#cotizar']);
 
     const instagram = header.querySelector('a[aria-label="Instagram"]');
     expect(instagram.getAttribute('href')).toBe(IG);

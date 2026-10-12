@@ -76,11 +76,11 @@ test('el botón flotante de WhatsApp no tapa el botón principal en ningún celu
   }
 });
 
-test('el menú se ve en tablet y se esconde en celular', async ({ page }) => {
+test('el menú se ve en tablet y también en celular, en una segunda fila', async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 });
   await page.goto('/');
   await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeHidden();
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible();
 });

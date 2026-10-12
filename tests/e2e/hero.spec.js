@@ -10,10 +10,10 @@ test('US2-S1: en un celular de 360 px se ve todo sin scrollear', async ({ page }
 
   const header = page.locator('header');
   await expect(header.getByRole('img', { name: 'Gráfica Delph' })).toBeVisible();
-  for (const locator of [page.locator('#badge-construccion'), page.getByRole('heading', { level: 1 }), page.locator('#cta-hero')]) {
+  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('#cta-hero')]) {
     await expect(locator).toBeInViewport({ ratio: 1 });
   }
-  await expect(page.locator('#badge-construccion')).toHaveText('Sitio en construcción');
+  await expect(page.locator('#badge-construccion')).toHaveCount(0);
   await expect(page.locator('#cta-hero')).toHaveText('Cotizá tu proyecto');
 });
 

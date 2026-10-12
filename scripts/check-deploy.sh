@@ -14,12 +14,13 @@ check() {
 # Se guarda el cuerpo en una variable: con `curl | grep -q` y pipefail, grep cierra la tubería al primer acierto
 # y curl termina con error (SIGPIPE), lo que daría un falso negativo.
 body_has() { local body; body="$(curl -fsS --max-time 20 "$1")" || return 1; grep -q "$2" <<<"$body"; }
+body_lacks() { local body; body="$(curl -fsS --max-time 20 "$1")" || return 1; ! grep -q "$2" <<<"$body"; }
 redirects_to() { [ "$(curl -sS --max-time 20 -o /dev/null -w '%{redirect_url}' "$1")" = "$2" ]; }
 status_is() { [ "$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' "$1")" = "$2" ]; }
 
 echo "US7-S1: https://$DOMAIN carga con certificado válido"
 check "responde 200 sin errores de certificado" status_is "https://$DOMAIN/" 200
-check "contiene el aviso \"Sitio en construcción\"" body_has "https://$DOMAIN/" "Sitio en construcción"
+check "ya no muestra el aviso de construcción" body_lacks "https://$DOMAIN/" "Sitio en construcción"
 
 echo "US7-S2: http y www terminan en https://$DOMAIN"
 check "http://$DOMAIN/ redirige a https://$DOMAIN/" redirects_to "http://$DOMAIN/" "https://$DOMAIN/"

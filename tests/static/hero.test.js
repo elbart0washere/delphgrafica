@@ -20,11 +20,10 @@ describe('encabezado', () => {
 });
 
 describe('hero', () => {
-  it('US2-regla14: la etiqueta "Sitio en construcción" no es un enlace ni un botón', () => {
-    const badge = document.querySelector('#badge-construccion');
-    expect(textOf(badge)).toBe('Sitio en construcción');
-    expect(badge.closest('a, button')).toBeNull();
-    expect(['A', 'BUTTON']).not.toContain(badge.tagName);
+  it('ya no muestra el aviso de "Sitio en construcción"', () => {
+    expect(document.querySelector('#badge-construccion')).toBeNull();
+    expect(textOf(document.body)).not.toMatch(/en construcci/i);
+    expect(document.title).not.toMatch(/en construcci/i);
   });
 
   it('el CTA principal dice "Cotizá tu proyecto" y lleva al formulario', () => {

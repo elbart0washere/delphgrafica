@@ -10,8 +10,8 @@ describe('<head> del documento (regla 25)', () => {
     expect(document.documentElement.getAttribute('lang')).toBe('es-AR');
   });
 
-  it('tiene el título de la spec', () => {
-    expect(document.title).toBe('Gráfica Delph — Sitio en construcción');
+  it('tiene un título que dice qué hace el negocio, sin avisos de obra', () => {
+    expect(document.title).toBe('Gráfica Delph — Calcos, lonas y merchandising');
   });
 
   it('tiene meta descripción en español', () => {

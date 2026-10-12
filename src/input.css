@@ -91,8 +91,6 @@
   /* Hero */
   .hero { display: grid; grid-template-columns: 1fr 1fr; min-height: min(720px, 86vh); }
   .hero-text { background: var(--color-ink); color: #fff; padding: clamp(32px, 6vw, 96px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 24px; }
-  .badge { display: inline-flex; align-items: center; gap: 10px; border: 1px solid rgba(255, 255, 255, .4); border-radius: 999px; padding: 6px 14px; font-size: .875rem; font-weight: 600; letter-spacing: .02em; }
-  .badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--color-brand-yellow); }
   .hero h1 { font-size: clamp(2.25rem, 4.3vw, 4rem); line-height: 1.02; font-weight: 800; letter-spacing: -.025em; }
   .hero h1 em { font-style: normal; color: var(--color-brand-yellow); display: block; }
   .lead { font-size: 1.15rem; color: var(--color-mist-2); max-width: 34ch; }

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Avisa a Caro por Telegram de lo que se publica en main (ver scripts/notify-telegram.mjs).
+# Va en segundo plano y siempre sale 0: un aviso que falla nunca debe frenar ni demorar un push.
+input=$(cat)
+root=$(git rev-parse --show-toplevel)
+printf '%s\n' "$input" | node "$root/scripts/notify-telegram.mjs" "$1" >/dev/null 2>&1 &
+exit 0

@@ -30,4 +30,13 @@ describe('footer', () => {
   it('US5-S4: el ícono de email abre el correo al taller', () => {
     expect(footer.querySelector('a[aria-label="Email"]').getAttribute('href')).toBe('mailto:' + EMAIL);
   });
+
+  // El link oficial de "Pedir reseñas" de Google Business Profile abre directo la ventana de estrellas.
+  it('invita a dejar una reseña en Google con el link oficial, en una pestaña nueva', () => {
+    const link = footer.querySelector('a[href="https://g.page/r/CUxU71ozKWdJEAE/review"]');
+    expect(link, 'falta el enlace a la reseña').not.toBeNull();
+    expect(textOf(link)).toBe('Dejanos tu reseña en Google');
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toContain('noopener');
+  });
 });

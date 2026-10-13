@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { PAGES } from '../../scripts/stamp.mjs';
+import { INDEXED_PAGES as PAGES } from '../../scripts/stamp.mjs';
 
 const root = new URL('../../', import.meta.url);
 const ORIGIN = 'https://delphgrafica.com.ar';

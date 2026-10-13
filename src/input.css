@@ -3,6 +3,7 @@
 @import "tailwindcss" source(none);
 @source "../index.html";
 @source "../portfolio.html";
+@source "../404.html";
 @source "../js";
 
 /* Paleta medida del logo (colores planos y exactos). El acento es el magenta del logo (#eb078d) apenas

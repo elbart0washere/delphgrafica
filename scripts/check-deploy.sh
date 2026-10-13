@@ -31,4 +31,20 @@ for path in docs/PRD.md docs/ specs/; do
   check "/$path da 404" status_is "https://$DOMAIN/$path" 404
 done
 
+echo "SEO: lo que Google lee está publicado"
+check "robots.txt apunta al sitemap" body_has "https://$DOMAIN/robots.txt" "Sitemap: https://$DOMAIN/sitemap.xml"
+check "sitemap.xml lista el inicio" body_has "https://$DOMAIN/sitemap.xml" "<loc>https://$DOMAIN/</loc>"
+check "sitemap.xml lista el portfolio" body_has "https://$DOMAIN/sitemap.xml" "<loc>https://$DOMAIN/portfolio.html</loc>"
+check "el inicio declara su canonical" body_has "https://$DOMAIN/" 'rel="canonical" href="https://'"$DOMAIN"'/"'
+check "el portfolio declara su canonical" body_has "https://$DOMAIN/portfolio.html" 'rel="canonical" href="https://'"$DOMAIN"'/portfolio.html"'
+
+# Una URL inexistente tiene que dar 404 de verdad (si no, Google indexa páginas fantasma) y mostrar la página del sitio.
+serves_404_page() {
+  local body status
+  body="$(curl -sS --max-time 20 "$1")" || return 1
+  status="$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' "$1")"
+  [ "$status" = "404" ] && grep -q "Esta página no existe" <<<"$body"
+}
+check "una URL inexistente da 404 y muestra la página del sitio" serves_404_page "https://$DOMAIN/esta-pagina-no-existe"
+
 exit $FAILED

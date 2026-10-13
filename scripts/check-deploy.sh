@@ -37,6 +37,7 @@ check "sitemap.xml lista el inicio" body_has "https://$DOMAIN/sitemap.xml" "<loc
 check "sitemap.xml lista el portfolio" body_has "https://$DOMAIN/sitemap.xml" "<loc>https://$DOMAIN/portfolio.html</loc>"
 check "el inicio declara su canonical" body_has "https://$DOMAIN/" 'rel="canonical" href="https://'"$DOMAIN"'/"'
 check "el portfolio declara su canonical" body_has "https://$DOMAIN/portfolio.html" 'rel="canonical" href="https://'"$DOMAIN"'/portfolio.html"'
+check "llms.txt (resumen para asistentes de IA) está publicado" body_has "https://$DOMAIN/llms.txt" "# Gráfica Delph"
 
 # Una URL inexistente tiene que dar 404 de verdad (si no, Google indexa páginas fantasma) y mostrar la página del sitio.
 serves_404_page() {

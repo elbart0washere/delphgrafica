@@ -23,7 +23,9 @@
   <link rel="apple-touch-icon" href="assets/favicon.png?v=c37792cb">
   <meta name="theme-color" content="#dc078b">
   <link rel="preload" href="assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles.css?v=0b6a7316">
+  <script type="importmap">{"imports":{"./js/dialog.js":"./js/dialog.js?v=48efea60","./js/form-logic.js":"./js/form-logic.js?v=48efea60","./js/form.js":"./js/form.js?v=48efea60","./js/shuffle.js":"./js/shuffle.js?v=48efea60","./js/video.js":"./js/video.js?v=48efea60"}}</script>
+  <script type="module" src="js/trabajos.js?v=48efea60"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=33635aa7">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -110,6 +112,27 @@
       </div>
     </section>
 
+    <section class="block" id="trabajos" aria-labelledby="trabajos-titulo">
+      <div class="wrap">
+        <p class="eyebrow">Portfolio</p>
+        <h2 id="trabajos-titulo" class="title">Trabajos de nuestro taller</h2>
+        <p class="gallery-intro">Algunos de los trabajos que salieron de nuestra plotter y de nuestras máquinas.</p>
+        <!-- galeria-portfolio:inicio -->
+  <ul class="gallery" data-trabajos>
+    <li><a class="shot" href="portfolio.html" aria-label="Ver más trabajos en el portfolio: Tarjetas impresas de un lavadero de autos, con una tarjeta de fidelización por visitas"><img src="assets/portfolio/tarjetas-lavadero-bmg.jpg?v=2119a03f" alt="Tarjetas impresas de un lavadero de autos, con una tarjeta de fidelización por visitas" width="788" height="1400" loading="lazy"></a></li>
+    <li><a class="shot" href="portfolio.html" aria-label="Ver más trabajos en el portfolio: Bolsa de envío «Hola! Llegué.» sobre banners de lona impresos"><img src="assets/portfolio/bolsa-hola-llegue-sobre-banners.jpg?v=45594932" alt="Bolsa de envío «Hola! Llegué.» sobre banners de lona impresos" width="1400" height="1400" loading="lazy"></a></li>
+    <li><a class="shot" href="portfolio.html" aria-label="Ver más trabajos en el portfolio: Calco grande del escudo de una dirección de bomberos, despegándose del papel"><img src="assets/portfolio/calcos-bomberos.jpg?v=f7b42723" alt="Calco grande del escudo de una dirección de bomberos, despegándose del papel" width="948" height="1400" loading="lazy"></a></li>
+    <li><a class="shot" href="portfolio.html" aria-label="Ver más trabajos en el portfolio: Bolsa de envío «Hola! Llegué.» apoyada sobre un banner de baile con un folleto de WhatsApp"><img src="assets/portfolio/bolsa-hola-llegue-con-folleto.jpg?v=df4016d9" alt="Bolsa de envío «Hola! Llegué.» apoyada sobre un banner de baile con un folleto de WhatsApp" width="1400" height="1400" loading="lazy"></a></li>
+    <li><a class="shot" href="portfolio.html" aria-label="Ver más trabajos en el portfolio: Banners de lona impresos en full color apilados: un gimnasio funcional y una academia de baile"><img src="assets/portfolio/banners-lona.jpg?v=12389263" alt="Banners de lona impresos en full color apilados: un gimnasio funcional y una academia de baile" width="1400" height="1400" loading="lazy"></a></li>
+    <li><a class="shot" href="portfolio.html" aria-label="Ver más trabajos en el portfolio: Sticker troquelado con letras verdes y borde negro despegándose de la plancha"><img src="assets/portfolio/stickers-troquelados-mission.jpg?v=4b9403ab" alt="Sticker troquelado con letras verdes y borde negro despegándose de la plancha" width="1400" height="678" loading="lazy"></a></li>
+  </ul>
+  <!-- galeria-portfolio:fin -->
+        <div class="gallery-cta">
+          <a class="btn btn-ink" href="portfolio.html">Ver todo el portfolio <svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        </div>
+      </div>
+    </section>
+
     <section class="block" id="contacto" tabindex="-1" aria-labelledby="contacto-titulo" style="outline:none">
       <div class="wrap">
         <p class="eyebrow">Dónde estamos</p>
@@ -133,7 +156,7 @@
       <div class="foot-grid">
         <div><a class="logo" href="index.html" aria-label="Gráfica Delph"><img src="assets/logo-blanco.png?v=8ef0c747" alt="Gráfica Delph" width="200" height="267" loading="lazy"></a></div>
         <div><h2>Horarios</h2><p>Lunes a viernes de 9 a 18 h</p></div>
-        <div><h2>Taller</h2><p>Paso del Rey, Moreno</p><p>Envíos a todo el país</p><p><a class="mail" href="mailto:clientes@delphgrafica.com.ar">clientes@delphgrafica.com.ar</a></p></div>
+        <div><h2>Taller</h2><p>Paso del Rey, Moreno</p><p>Envíos a todo el país</p><p><a class="mail" href="mailto:clientes@delphgrafica.com.ar">clientes@delphgrafica.com.ar</a></p><p><a class="mail" href="grafica-en-paso-del-rey.html">Gráfica en Paso del Rey</a></p></div>
         <div>
           <h2>Seguinos</h2>
           <div class="social">

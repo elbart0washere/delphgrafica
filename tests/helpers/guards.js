@@ -13,7 +13,6 @@ const PROMISE_PATTERNS = [/\$/, /gratis/i, /garant[ií]a/i, /24\s?hs?\b/i, /\bd[
 const NON_VOSEO_PATTERNS = [/\bpuedes\b/i, /\btienes\b/i, /\bquieres\b/i, /\benv[ií]anos\b/i, /\bcont[aá]ctanos\b/i, /\bescr[ií]benos\b/i, /\bcotiza\b/i];
 
 const FORBIDDEN_API_PATTERNS = [
-  /\bfetch\s*\(/,
   /\bXMLHttpRequest\b/,
   /\bsendBeacon\b/,
   /\blocalStorage\b/,
@@ -29,8 +28,16 @@ export function findExternalImages(html) {
     .filter((src) => /^(https?:)?\/\//i.test(src));
 }
 
+// Un fetch es válido solo si pide una ruta fija del propio sitio: texto literal, sin `${}`, sin `http(s):` ni `//`, y sin
+// segundo argumento (nada de POST ni cuerpo). Cualquier otro (URL armada, otro dominio, envío de datos) es una violación.
+const SAME_SITE_FETCH = /^fetch\s*\(\s*(['"])(?!https?:|\/\/)[^'"`$\\]*\1\s*\)/;
+
 export function findForbiddenApis(js) {
-  return FORBIDDEN_API_PATTERNS.filter((pattern) => pattern.test(js)).map(String);
+  const found = FORBIDDEN_API_PATTERNS.filter((pattern) => pattern.test(js)).map(String);
+  for (const match of js.matchAll(/\bfetch\s*\(/g)) {
+    if (!SAME_SITE_FETCH.test(js.slice(match.index))) found.push('fetch');
+  }
+  return found;
 }
 
 export function visibleText(html) {

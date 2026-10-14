@@ -35,6 +35,9 @@ echo "SEO: lo que Google lee está publicado"
 check "robots.txt apunta al sitemap" body_has "https://$DOMAIN/robots.txt" "Sitemap: https://$DOMAIN/sitemap.xml"
 check "sitemap.xml lista el inicio" body_has "https://$DOMAIN/sitemap.xml" "<loc>https://$DOMAIN/</loc>"
 check "sitemap.xml lista el portfolio" body_has "https://$DOMAIN/sitemap.xml" "<loc>https://$DOMAIN/portfolio.html</loc>"
+check "sitemap.xml lista Gráfica en Moreno" body_has "https://$DOMAIN/sitemap.xml" "<loc>https://$DOMAIN/grafica-en-moreno.html</loc>"
+check "sitemap.xml lista Gráfica en Paso del Rey" body_has "https://$DOMAIN/sitemap.xml" "<loc>https://$DOMAIN/grafica-en-paso-del-rey.html</loc>"
+check "Gráfica en Paso del Rey declara su canonical" body_has "https://$DOMAIN/grafica-en-paso-del-rey.html" 'rel="canonical" href="https://'"$DOMAIN"'/grafica-en-paso-del-rey.html"'
 check "el inicio declara su canonical" body_has "https://$DOMAIN/" 'rel="canonical" href="https://'"$DOMAIN"'/"'
 check "el portfolio declara su canonical" body_has "https://$DOMAIN/portfolio.html" 'rel="canonical" href="https://'"$DOMAIN"'/portfolio.html"'
 check "llms.txt (resumen para asistentes de IA) está publicado" body_has "https://$DOMAIN/llms.txt" "# Gráfica Delph"

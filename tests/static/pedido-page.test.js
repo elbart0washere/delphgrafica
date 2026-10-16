@@ -137,7 +137,7 @@ describe('privacidad.html: política de privacidad básica', () => {
 });
 
 describe('el pie de las páginas enlaza la política de privacidad', () => {
-  it.each(['index.html', 'portfolio.html', 'grafica-en-moreno.html', 'pedido.html', 'privacidad.html'])('%s', (page) => {
+  it.each(['index.html', 'portfolio.html', 'grafica-en-moreno.html', 'grafica-en-paso-del-rey.html', 'pedido.html', 'privacidad.html'])('%s', (page) => {
     const link = load(page).querySelector('#pie a[href="privacidad.html"]');
     expect(link, 'falta el enlace').not.toBeNull();
     expect(textOf(link)).toBe('Política de privacidad');

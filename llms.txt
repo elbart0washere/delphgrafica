@@ -7,6 +7,7 @@
 - [Inicio](https://delphgrafica.com.ar/): servicios, formulario de contacto, mapa y horarios.
 - [Portfolio](https://delphgrafica.com.ar/portfolio.html): fotos y videos de trabajos realizados en el taller.
 - [Gráfica en Moreno](https://delphgrafica.com.ar/grafica-en-moreno.html): el taller en Paso del Rey, qué se imprime y cómo llegar.
+- [Gráfica en Paso del Rey](https://delphgrafica.com.ar/grafica-en-paso-del-rey.html): el taller de barrio en Paso del Rey, qué se imprime y cómo llegar.
 
 ## Servicios
 

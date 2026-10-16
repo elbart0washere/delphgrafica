@@ -35,7 +35,7 @@ describe('los detectores detectan (fixtures que violan la regla)', () => {
   });
 
   it('APIs que sacarían datos del navegador (regla 10)', () => {
-    expect(findForbiddenApis('fetch("/x"); localStorage.setItem("a","b")')).toHaveLength(2);
+    expect(findForbiddenApis('fetch("https://x.com/api"); localStorage.setItem("a","b")')).toHaveLength(2);
     expect(findForbiddenApis('const url = buildUrl(data); window.open(url)')).toEqual([]);
   });
 
@@ -43,6 +43,18 @@ describe('los detectores detectan (fixtures que violan la regla)', () => {
     expect(findForbiddenApis('fetch("/x")', { allowFetch: true })).toEqual([]);
     expect(findForbiddenApis('fetch("/x"); localStorage.setItem("a","b")', { allowFetch: true })).toHaveLength(1);
     expect(findForbiddenApis('navigator.sendBeacon("/x"); document.cookie = "a=b"; sessionStorage.x = 1', { allowFetch: true })).toHaveLength(3);
+  });
+
+  // Leer una página del propio sitio no saca nada del navegador; mandar o pedir algo a otro dominio, o a una URL
+  // armada en el momento (que podría llevar datos), sí.
+  it('fetch solo se permite a una ruta fija del propio sitio', () => {
+    expect(findForbiddenApis("fetch('portfolio.html')")).toEqual([]);
+    expect(findForbiddenApis('fetch("/portfolio.html")')).toEqual([]);
+    expect(findForbiddenApis('fetch("https://otro.com/x")')).not.toEqual([]);
+    expect(findForbiddenApis('fetch("//otro.com/x")')).not.toEqual([]);
+    expect(findForbiddenApis('fetch(`portfolio.html?q=${dato}`)')).not.toEqual([]);
+    expect(findForbiddenApis('fetch(url)')).not.toEqual([]);
+    expect(findForbiddenApis("fetch('portfolio.html', { method: 'POST', body })")).not.toEqual([]);
   });
 
   it('palabras de promesa (regla 13)', () => {

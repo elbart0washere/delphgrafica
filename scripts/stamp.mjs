@@ -25,10 +25,11 @@ const hash = (...buffers) => {
 
 const modules = () => readdirSync(new URL('js/', root)).filter((file) => file.endsWith('.js')).sort();
 // Cada página HTML tiene su módulo de entrada (main.js, portfolio.js); solo los demás van en el mapa de importación.
-export const ENTRIES = ['main.js', 'portfolio.js'];
+export const ENTRIES = ['main.js', 'portfolio.js', 'pedido.js'];
 // La 404 se sella como cualquier página, pero no se indexa: no va en el sitemap ni lleva canonical.
 export const INDEXED_PAGES = ['index.html', 'portfolio.html', 'grafica-en-moreno.html'];
-export const PAGES = [...INDEXED_PAGES, '404.html'];
+// El formulario de pedidos y la política de privacidad se sellan como cualquier página, pero no se indexan (ni sitemap ni canonical obligatorio).
+export const PAGES = [...INDEXED_PAGES, 'pedido.html', 'privacidad.html', '404.html'];
 
 /** Versión de todo el grafo de módulos JS: si cambia cualquiera, cambia para todos. */
 export function jsVersion(read = defaultRead) {

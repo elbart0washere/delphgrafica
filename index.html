@@ -24,10 +24,10 @@
   <link rel="apple-touch-icon" href="assets/favicon.png?v=c37792cb">
   <meta name="theme-color" content="#dc078b">
   <link rel="preload" href="assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles.css?v=0b6a7316">
+  <link rel="stylesheet" href="assets/styles.css?v=19a508bd">
   <noscript><style>.js-only{display:none}</style></noscript>
-  <script type="importmap">{"imports":{"./js/dialog.js":"./js/dialog.js?v=57cc48b3","./js/form-logic.js":"./js/form-logic.js?v=57cc48b3","./js/form.js":"./js/form.js?v=57cc48b3","./js/shuffle.js":"./js/shuffle.js?v=57cc48b3","./js/video.js":"./js/video.js?v=57cc48b3"}}</script>
-  <script type="module" src="js/main.js?v=57cc48b3"></script>
+  <script type="importmap">{"imports":{"./js/form-logic.js":"./js/form-logic.js?v=2039a917","./js/form.js":"./js/form.js?v=2039a917","./js/pedido-logic.js":"./js/pedido-logic.js?v=2039a917","./js/pedido-upload.js":"./js/pedido-upload.js?v=2039a917","./js/shuffle.js":"./js/shuffle.js?v=2039a917","./js/video.js":"./js/video.js?v=2039a917"}}</script>
+  <script type="module" src="js/main.js?v=2039a917"></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -247,7 +247,7 @@
 
           <div class="form-actions">
             <button id="btn-enviar" type="submit" class="btn btn-cta">Enviar por WhatsApp <svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
-            <button id="btn-adjuntar" type="button" class="btn btn-line" data-abrir-modal>Adjuntar archivo / Arte final</button>
+            <a id="btn-adjuntar" class="btn btn-line" href="pedido.html">Adjuntar archivo / Arte final</a>
           </div>
           <p id="estado" role="status" class="hint field-error" style="border:0;padding:0;font-weight:400"></p>
           <p class="privacy">Tus datos solo se usan para armar el mensaje de WhatsApp: no se guardan en este sitio.</p>
@@ -265,7 +265,7 @@
       <div class="foot-grid">
         <div><a class="logo" href="#inicio" aria-label="Gráfica Delph"><img src="assets/logo-blanco.png?v=8ef0c747" alt="Gráfica Delph" width="200" height="267" loading="lazy"></a></div>
         <div><h2>Horarios</h2><p>Lunes a viernes de 9 a 18 h</p></div>
-        <div><h2>Taller</h2><p>Paso del Rey, Moreno</p><p>Envíos a todo el país</p><p><a class="mail" href="mailto:clientes@delphgrafica.com.ar">clientes@delphgrafica.com.ar</a></p><p><a class="mail" href="grafica-en-moreno.html">Gráfica en Moreno</a></p></div>
+        <div><h2>Taller</h2><p>Paso del Rey, Moreno</p><p>Envíos a todo el país</p><p><a class="mail" href="mailto:clientes@delphgrafica.com.ar">clientes@delphgrafica.com.ar</a></p><p><a class="mail" href="grafica-en-moreno.html">Gráfica en Moreno</a></p><p><a class="mail" href="privacidad.html">Política de privacidad</a></p></div>
         <div>
           <h2>Seguinos</h2>
           <div class="social">
@@ -282,15 +282,5 @@
 
   <a id="fab-whatsapp" class="fab" href="https://wa.me/5491172394787?text=Hola!%20Quiero%20hacer%20una%20consulta." target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp"><svg class="i" aria-hidden="true"><use href="#i-brand-whatsapp"/></svg></a>
 
-  <dialog id="modal-arte" aria-labelledby="modal-arte-titulo">
-    <div class="modal-box">
-      <h2 id="modal-arte-titulo">Adjuntar archivo</h2>
-      <p>Próximamente: La carga directa de archivos estará disponible muy pronto. Por el momento, podés enviarnos tus archivos de diseño directamente por WhatsApp.</p>
-      <div class="form-actions">
-        <a id="btn-modal-whatsapp" class="btn btn-cta" href="https://wa.me/5491172394787?text=Hola!%20Quiero%20enviarles%20un%20arte%20final%20para%20cotizar." target="_blank" rel="noopener">Abrir WhatsApp</a>
-        <button type="button" class="btn btn-line" data-cerrar-modal>Cerrar</button>
-      </div>
-    </div>
-  </dialog>
 </body>
 </html>

@@ -9,7 +9,7 @@ const KB = 1024;
 const gzipped = (path) => gzipSync(readFileSync(new URL(path, root))).length;
 const raw = (path) => statSync(new URL(path, root)).size;
 
-const TEXT = ['index.html', 'assets/styles.css', 'js/main.js', 'js/form.js', 'js/form-logic.js', 'js/dialog.js'];
+const TEXT = ['index.html', 'assets/styles.css', 'js/main.js', 'js/form.js', 'js/form-logic.js'];
 const BINARY = ['assets/fonts/inter-latin-var.woff2', 'assets/logo.png', 'assets/logo-sm.png', 'assets/favicon.png'];
 
 describe('performance', () => {

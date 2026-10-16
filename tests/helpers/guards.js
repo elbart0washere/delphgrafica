@@ -1,7 +1,7 @@
 import { JSDOM } from 'jsdom';
 
 // Ids de los únicos elementos que pueden llevar el acento como color propio (regla 16).
-export const ACCENT_ALLOWED_IDS = ['cta-hero', 'btn-enviar', 'btn-modal-whatsapp', 'btn-ig-banner'];
+export const ACCENT_ALLOWED_IDS = ['cta-hero', 'btn-enviar', 'btn-ig-banner'];
 
 // Clases que pintan un elemento con el acento (el botón principal `btn-cta` o cualquier utilidad `*accent*`).
 const isAccentClass = (token) => token === 'btn-cta' || token.includes('accent');
@@ -29,8 +29,9 @@ export function findExternalImages(html) {
     .filter((src) => /^(https?:)?\/\//i.test(src));
 }
 
-export function findForbiddenApis(js) {
-  return FORBIDDEN_API_PATTERNS.filter((pattern) => pattern.test(js)).map(String);
+/** `allowFetch`: solo para los módulos del formulario de pedidos (ver la enmienda a la regla 10 en guards.test.js). */
+export function findForbiddenApis(js, { allowFetch = false } = {}) {
+  return FORBIDDEN_API_PATTERNS.filter((pattern) => !(allowFetch && pattern.source.startsWith('\\bfetch'))).filter((pattern) => pattern.test(js)).map(String);
 }
 
 export function visibleText(html) {

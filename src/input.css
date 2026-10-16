@@ -5,6 +5,8 @@
 @source "../portfolio.html";
 @source "../404.html";
 @source "../grafica-en-moreno.html";
+@source "../pedido.html";
+@source "../privacidad.html";
 @source "../js";
 
 /* Paleta medida del logo (colores planos y exactos). El acento es el magenta del logo (#eb078d) apenas
@@ -206,11 +208,78 @@
   .fab .i { width: 32px; height: 32px; }
   .fab:hover { filter: brightness(1.12); }
 
-  /* Modal de adjuntar archivo (<dialog> nativo: Esc, foco atrapado y fondo inerte vienen del navegador) */
-  dialog#modal-arte { margin: auto; padding: 0; border: 0; border-radius: 2px; max-width: min(92vw, 520px); background: #fff; color: var(--color-ink); }
-  dialog#modal-arte::backdrop { background: rgba(0, 0, 0, .6); }
-  .modal-box { padding: clamp(20px, 4vw, 36px); display: grid; gap: 16px; }
-  .modal-box h2 { font-size: 1.5rem; font-weight: 800; }
+  /* Formulario de pedidos (pedido.html). El magenta queda solo para el botón principal (regla 16); el resto usa tinta, cian y amarillo. */
+  .pedido-wrap { max-width: 760px; }
+  .pedido-intro { color: var(--color-muted); margin: 16px 0; max-width: 56ch; }
+  .pedido-form { margin-top: 32px; gap: 36px; }
+  .legal h2 { margin: 32px 0 8px; font-size: 1.25rem; font-weight: 800; }
+  .legal p, .legal li { max-width: 68ch; }
+  .legal ul { padding-left: 1.2em; list-style: disc; }
+  .legal li { margin-top: 6px; }
+  .step { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 16px; }
+  .step legend { display: flex; align-items: center; gap: 12px; padding: 0; margin-bottom: 4px; font-size: 1.2rem; font-weight: 800; }
+  .step-n { display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--color-ink); color: #fff; font-size: .95rem; font-weight: 700; }
+  /* Safari ignora la altura del <select> nativo (medía 25 px): con appearance none mide igual en todos los navegadores. */
+  .card select { display: block; width: 100%; min-height: 48px; border: 1px solid #767676; border-radius: 2px; padding: 10px 40px 10px 14px; font: inherit; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6l6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 16px; appearance: none; -webkit-appearance: none; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .row > * { min-width: 0; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { position: relative; display: inline-block; margin: 0; }
+  .card .chip input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+  .chip span { display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px; border: 2px solid var(--color-ink); border-radius: 2px; background: #fff; font-weight: 600; }
+  .chip input:checked + span { background: var(--color-ink); color: #fff; }
+  .chip input:focus-visible + span { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+
+  .spec { display: flex; flex-wrap: wrap; gap: 6px 20px; padding: 12px 14px; background: var(--color-mist); font-size: .9rem; }
+  .spec:empty { display: none; }
+
+  .drop { display: grid; justify-items: center; gap: 6px; width: 100%; min-height: 44px; padding: 32px 16px; border: 2px dashed #767676; border-radius: 2px; background: var(--color-mist); color: inherit; font: inherit; text-align: center; cursor: pointer; }
+  .drop:hover, .drop.over { border-color: var(--color-ink); background: var(--color-cyan-100); }
+  .drop:disabled { opacity: .55; cursor: not-allowed; }
+  .drop .i { width: 2rem; height: 2rem; }
+  .drop strong { font-size: 1.05rem; }
+  .drop span { color: var(--color-muted); font-size: .875rem; }
+
+  .file-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .file-list:empty { display: none; }
+  .file { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--color-mist-3); background: #fff; }
+  .file-top { display: flex; align-items: center; gap: 12px; }
+  .thumb { display: grid; place-items: center; flex: none; width: 64px; height: 64px; background: var(--color-mist) center / cover no-repeat; color: var(--color-muted); font-size: .75rem; font-weight: 800; }
+  .file-meta { flex: 1; min-width: 0; }
+  .file-name { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+  .file-info { color: var(--color-muted); font-size: .875rem; }
+  .file-remove { flex: none; background: #fff; }
+  .file-remove:disabled { opacity: .4; cursor: not-allowed; }
+  .verdict { padding: 10px 12px; border-left: 4px solid var(--color-ink); font-size: .9rem; }
+  .verdict-ok { background: var(--color-cyan-100); }
+  .verdict-warn { background: var(--color-yellow-100); }
+
+  /* La casilla de consentimiento mide 44 × 44 px (regla 22): la casilla nativa va transparente encima de una dibujada. */
+  .consent { position: relative; }
+  .card .consent input { position: absolute; z-index: 1; left: 0; top: 0; width: 44px; height: 44px; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+  .card .consent label { position: relative; display: flex; align-items: center; min-height: 44px; margin: 0; padding-left: 58px; font-size: .9rem; font-weight: 400; }
+  .consent label::before { content: ""; position: absolute; left: 0; top: 0; box-sizing: border-box; width: 44px; height: 44px; border: 2px solid var(--color-ink); border-radius: 2px; background: #fff; }
+  .consent input:checked + label::before { background: var(--color-ink); }
+  .consent input:checked + label::after { content: ""; position: absolute; left: 15px; top: 7px; width: 12px; height: 22px; border: solid #fff; border-width: 0 4px 4px 0; transform: rotate(45deg); }
+  .consent input:focus-visible + label::before { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+
+  .turnstile { min-height: 65px; }
+  .pedido-progress { display: grid; gap: 8px; }
+  .pedido-progress progress { width: 100%; height: 12px; border: 0; background: var(--color-mist-2); appearance: none; }
+  .pedido-progress progress::-webkit-progress-bar { background: var(--color-mist-2); }
+  .pedido-progress progress::-webkit-progress-value { background: var(--color-brand-cyan); }
+  .pedido-progress progress::-moz-progress-bar { background: var(--color-brand-cyan); }
+
+  .pedido-listo { display: grid; justify-items: start; gap: 16px; margin-top: 32px; outline: none; }
+  .check { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--color-ink); color: #fff; }
+  .check .i { width: 32px; height: 32px; stroke-width: 3; }
+  .order-no { padding: 8px 20px; background: var(--color-brand-yellow); font-size: clamp(1.8rem, 7vw, 2.6rem); font-weight: 800; letter-spacing: .02em; }
+  .summary { display: grid; grid-template-columns: max-content 1fr; gap: 8px 24px; width: 100%; max-width: 520px; padding-top: 16px; border-top: 1px solid var(--color-mist-3); }
+  .summary dt { color: var(--color-muted); }
+  .summary dd { overflow-wrap: anywhere; font-weight: 600; }
+  .next { max-width: 56ch; padding-left: 1.4em; list-style: decimal; color: var(--color-muted); }
+  .next li { margin-top: 4px; padding-left: 4px; }
 
   @media (prefers-reduced-motion: reduce) {
     .tile { transition: none; }
@@ -263,6 +332,9 @@
   }
 
   @media (max-width: 520px) {
+    .row { grid-template-columns: 1fr; }
+    .summary { grid-template-columns: 1fr; gap: 2px; }
+    .summary dd { margin-bottom: 10px; }
     .foot-grid { grid-template-columns: 1fr; }
     .hero-actions .btn { width: 100%; }
     /* Celulares chicos (320×568): que el título y el botón principal entren sin scrollear. */

@@ -155,3 +155,11 @@ describe('el inicio lleva al formulario de pedidos', () => {
     expect(index.body.textContent).not.toContain('Próximamente');
   });
 });
+
+describe('las landings y el portfolio llevan al formulario de pedidos', () => {
+  it.each(['grafica-en-moreno.html', 'grafica-en-paso-del-rey.html', 'portfolio.html'])('%s enlaza a pedido.html', (page) => {
+    const link = load(page).querySelector('.gallery-cta a[href="pedido.html"]');
+    expect(link, 'falta el enlace').not.toBeNull();
+    expect(textOf(link)).toBe('Mandanos tu trabajo');
+  });
+});

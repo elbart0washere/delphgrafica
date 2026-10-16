@@ -160,6 +160,14 @@ describe('las landings y el portfolio llevan al formulario de pedidos', () => {
   it.each(['grafica-en-moreno.html', 'grafica-en-paso-del-rey.html', 'portfolio.html'])('%s enlaza a pedido.html', (page) => {
     const link = load(page).querySelector('.gallery-cta a[href="pedido.html"]');
     expect(link, 'falta el enlace').not.toBeNull();
-    expect(textOf(link)).toBe('Mandanos tu trabajo');
+    expect(textOf(link)).toBe('Subí tu diseño');
+  });
+});
+
+describe('el menú principal lleva al formulario de pedidos', () => {
+  it.each(['index.html', 'portfolio.html', 'grafica-en-moreno.html', 'grafica-en-paso-del-rey.html', 'pedido.html', 'privacidad.html'])('%s', (page) => {
+    const link = load(page).querySelector('nav.menu a[href="pedido.html"]');
+    expect(link, 'falta el enlace').not.toBeNull();
+    expect(textOf(link)).toBe('Subí tu diseño');
   });
 });

@@ -8,10 +8,6 @@ import {
   buildDraftPayload,
   checkFile,
   formatBytes,
-  formatCm,
-  idealDpi,
-  parseCm,
-  requiredPixels,
   validateOrder,
 } from './pedido-logic.js';
 import { ApiError, createDraft, finalizeOrder, uploadFile } from './pedido-upload.js';
@@ -38,8 +34,6 @@ let nextId = 1;
 
 const ERROR_IDS = {
   product: 'producto-error',
-  width: 'ancho-error',
-  height: 'alto-error',
   quantity: 'cantidad-error',
   finishing: 'terminacion-error',
   files: 'archivos-error',
@@ -50,7 +44,7 @@ const ERROR_IDS = {
   notes: 'notas-error',
   consent: 'consentimiento-error',
 };
-const INPUT_IDS = { width: 'ancho', height: 'alto', quantity: 'cantidad', finishing: 'terminacion', name: 'nombre', email: 'email', whatsapp: 'whatsapp', notes: 'notas', consent: 'consentimiento' };
+const INPUT_IDS = { quantity: 'cantidad', finishing: 'terminacion', name: 'nombre', email: 'email', whatsapp: 'whatsapp', notes: 'notas', consent: 'consentimiento' };
 
 function clearErrors() {
   for (const id of Object.values(ERROR_IDS)) $(id).textContent = '';
@@ -82,7 +76,7 @@ function focusField(name) {
 
 const setStatus = (text) => ($('estado').textContent = text);
 
-// ---------------------------------------------------------------------------------------------- catálogo y medidas
+// ---------------------------------------------------------------------------------------------- catálogo
 
 async function loadCatalog() {
   const box = $('productos');
@@ -128,33 +122,6 @@ async function loadCatalog() {
 function selectProduct(product) {
   state.product = product;
   $('producto-error').textContent = '';
-  // Las medidas por defecto del producto solo se cargan si la persona todavía no escribió las suyas.
-  for (const [id, mm] of [['ancho', product.defaultWidthMm], ['alto', product.defaultHeightMm]]) {
-    const input = $(id);
-    if (!input.dataset.touched) input.value = mm ? formatCm(mm) : '';
-  }
-  renderSpec();
-}
-
-function renderSpec() {
-  const spec = $('spec');
-  const width = parseCm($('ancho').value);
-  const height = parseCm($('alto').value);
-  if (!state.product || Number.isNaN(width) || Number.isNaN(height)) return spec.replaceChildren();
-  const dpi = idealDpi(state.product, width, height);
-  const px = requiredPixels(width, height, state.product.bleedMm, dpi);
-  const parts = [
-    ['Medida final', `${formatCm(width * 10)} × ${formatCm(height * 10)} cm`],
-    ['Sangrado', `${formatCm(state.product.bleedMm)} cm por lado`],
-    ['Resolución ideal', `${dpi} dpi (${px.width.toLocaleString('es-AR')} × ${px.height.toLocaleString('es-AR')} px)`],
-  ];
-  spec.replaceChildren(
-    ...parts.map(([label, value]) => {
-      const item = document.createElement('span');
-      item.append(`${label}: `, Object.assign(document.createElement('b'), { textContent: value }));
-      return item;
-    }),
-  );
 }
 
 // ---------------------------------------------------------------------------------------------- archivos
@@ -192,7 +159,7 @@ function removeFile(id) {
 function verdictFor(item) {
   const a = item.analysis;
   if (!a) return null;
-  if (a.status === 'low') return { kind: 'warn', title: 'Poca resolución para esa medida', text: a.message };
+  if (a.status === 'low') return { kind: 'warn', title: 'Poca resolución para imprimir', text: a.message };
   if (a.status === 'ok') return { kind: 'ok', title: `Calidad suficiente${a.effectiveDpi ? ` (${Math.round(a.effectiveDpi)} dpi)` : ''}`, text: '' };
   return { kind: 'ok', title: 'Recibido', text: 'Lo revisamos en el taller.' };
 }
@@ -314,8 +281,6 @@ function resetTurnstile() {
 function readFields() {
   return {
     product: state.product?.slug ?? '',
-    width: $('ancho').value,
-    height: $('alto').value,
     quantity: $('cantidad').value,
     finishing: $('terminacion').value,
     name: $('nombre').value,
@@ -332,7 +297,9 @@ function setBusy(busy) {
   form.setAttribute('aria-busy', String(busy));
   for (const control of form.querySelectorAll('input, select, textarea, #btn-enviar')) control.disabled = busy;
   $('zona-archivos').disabled = busy || Boolean(state.draft);
-  $('progreso').hidden = !busy;
+  const dialog = $('dialogo-subida');
+  if (busy && !dialog.open) dialog.showModal();
+  else if (!busy && dialog.open) dialog.close();
   renderFiles();
 }
 
@@ -469,7 +436,6 @@ function showDone({ orderNo, needsReview }) {
   const f = state.fields;
   const lines = [
     ['Producto', state.product?.name],
-    ['Medida', `${formatCm(parseCm(f.width) * 10)} × ${formatCm(parseCm(f.height) * 10)} cm`],
     ['Cantidad', f.quantity.trim()],
     ['Terminación', f.finishing || null],
     ['Archivos', state.files.length === 1 ? state.files[0].name : `${state.files.length} archivos`],
@@ -480,6 +446,7 @@ function showDone({ orderNo, needsReview }) {
   $('numero-pedido').textContent = orderNo;
   $('aviso-revision').hidden = !needsReview;
   $('btn-wa-listo').href = `${WHATSAPP}?text=${encodeURIComponent(`Hola! Hice el pedido ${orderNo} en la web.`)}`;
+  $('dialogo-subida').close();
   form.hidden = true;
   $('pedido-intro').hidden = true; // el pedido ya está enviado: la bienvenida y el consejo del original sobran
   $('pedido-aviso').hidden = true;
@@ -492,14 +459,6 @@ $('btn-otro').addEventListener('click', () => location.reload());
 
 // ---------------------------------------------------------------------------------------------- arranque
 
-for (const id of ['ancho', 'alto']) {
-  $(id).addEventListener('input', () => {
-    $(id).dataset.touched = '1';
-    $(id).removeAttribute('aria-invalid');
-    $(`${id}-error`).textContent = '';
-    renderSpec();
-  });
-}
 for (const id of Object.values(INPUT_IDS)) {
   $(id).addEventListener('input', () => {
     $(id).removeAttribute('aria-invalid');
@@ -509,6 +468,9 @@ for (const id of Object.values(INPUT_IDS)) {
   });
 }
 $('notas').addEventListener('input', () => ($('notas-contador').textContent = `${$('notas').value.length} / ${LIMITS.notes}`));
+
+// El diálogo de subida no se cierra con Escape: solo lo cierra el final de la subida (con éxito o con error).
+$('dialogo-subida').addEventListener('cancel', (event) => event.preventDefault());
 
 // Mientras se sube, cerrar la pestaña cortaría la subida: se le avisa a la persona.
 window.addEventListener('beforeunload', (event) => {

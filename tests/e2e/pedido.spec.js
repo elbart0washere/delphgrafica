@@ -105,28 +105,28 @@ test.describe('recorrido completo', () => {
 
     await fillOrder(page, { files: [bytes(600_000)] });
     await page.locator('#cantidad').fill('500');
-    await page.getByLabel('Terminación').selectOption('Laminado mate');
+    await page.getByLabel('Terminación').selectOption('Ojales y bolsillo');
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
 
     await expect(page.locator('#numero-pedido')).toHaveText('P-2026-0001');
     await expect(page.getByRole('heading', { name: '¡Recibimos tu pedido!' })).toBeVisible();
     await expect(page.locator('#form-pedido')).toBeHidden();
 
-    // El pedido que recibió el servidor: medidas en milímetros y solo lo que se completó.
+    // El pedido que recibió el servidor: solo lo que se completó, sin medidas.
     expect(seen.drafts).toHaveLength(1);
     expect(seen.drafts[0]).toMatchObject({
       turnstileToken: 'token-de-prueba',
       consent: true,
       product: 'tarjetas',
-      widthMm: 90,
-      heightMm: 50,
       quantity: 500,
-      finishing: 'Laminado mate',
+      finishing: 'Ojales y bolsillo',
       name: 'María Pérez',
       email: 'maria@example.com',
       files: [{ name: 'arte.jpg', size: 600_000 }],
     });
     expect(seen.drafts[0]).not.toHaveProperty('whatsapp');
+    expect(seen.drafts[0]).not.toHaveProperty('widthMm');
+    expect(seen.drafts[0]).not.toHaveProperty('heightMm');
 
     // 600 000 bytes en tramos de 256 KiB: 3 tramos, en orden, con el Content-Range correcto y el token en el header.
     expect(seen.chunks.map(({ start, end }) => [start, end])).toEqual([[0, CHUNK - 1], [CHUNK, 2 * CHUNK - 1], [2 * CHUNK, 599_999]]);
@@ -146,7 +146,6 @@ test.describe('recorrido completo', () => {
 
     const resumen = page.locator('#resumen');
     await expect(resumen).toContainText('Tarjetas');
-    await expect(resumen).toContainText('9 × 5 cm');
     await expect(resumen).toContainText('250');
     await expect(resumen).toContainText('arte.jpg');
     const href = await page.locator('#btn-wa-listo').getAttribute('href');
@@ -191,37 +190,28 @@ test.describe('recorrido completo', () => {
   });
 });
 
-test.describe('producto y medidas', () => {
-  test('al elegir un producto se cargan sus medidas y se muestra la resolución ideal', async ({ page }) => {
+test.describe('producto', () => {
+  test('el formulario no pide medidas ni muestra resolución', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
     await page.getByRole('radio', { name: 'Tarjetas' }).check();
-    await expect(page.locator('#ancho')).toHaveValue('9');
-    await expect(page.locator('#alto')).toHaveValue('5');
-    const spec = page.locator('#spec');
-    await expect(spec).toContainText('9 × 5 cm');
-    await expect(spec).toContainText('Sangrado: 0,3 cm por lado');
-    await expect(spec).toContainText('300 dpi');
-    await expect(spec).toContainText('1.134 × 661 px');
+    await expect(page.locator('#ancho')).toHaveCount(0);
+    await expect(page.locator('#alto')).toHaveCount(0);
+    await expect(page.locator('#spec')).toHaveCount(0);
   });
 
-  test('si la persona ya escribió su medida, cambiar de producto no la pisa', async ({ page }) => {
+  test('las terminaciones son solo ojales y bolsillo u otra', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
-    await page.getByRole('radio', { name: 'Tarjetas' }).check();
-    await page.locator('#ancho').fill('12,5');
-    await page.getByRole('radio', { name: 'Flyer A5' }).check();
-    await expect(page.locator('#ancho')).toHaveValue('12,5');
-    await expect(page.locator('#alto')).toHaveValue('21'); // el alto no lo tocó: sí toma el del producto nuevo
+    await expect(page.locator('#terminacion option')).toHaveText(['Sin terminación', 'Ojales y bolsillo', 'Otra (la aclaro abajo)']);
   });
 
-  test('en medida libre la resolución ideal depende del tamaño', async ({ page }) => {
+  test('en pedido.html no hay botones de WhatsApp que distraigan', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
-    await page.getByRole('radio', { name: 'Vinilo' }).check();
-    await page.locator('#ancho').fill('200');
-    await page.locator('#alto').fill('100');
-    await expect(page.locator('#spec')).toContainText('100 dpi');
+    await expect(page.locator('#form-pedido a[href*="wa.me"]')).toHaveCount(0);
+    await expect(page.locator('#fab-whatsapp')).toHaveCount(0);
+    await expect(page.locator('header.top .btn-wa')).toHaveCount(0);
   });
 });
 
@@ -232,7 +222,6 @@ test.describe('validaciones antes de enviar', () => {
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
 
     await expect(page.locator('#producto-error')).toHaveText('Elegí qué querés imprimir.');
-    await expect(page.locator('#ancho-error')).not.toBeEmpty();
     await expect(page.locator('#archivos-error')).toHaveText('Elegí al menos un archivo.');
     await expect(page.locator('#nombre-error')).toHaveText('Contanos tu nombre.');
     await expect(page.locator('#contacto-error')).toContainText('email o WhatsApp');
@@ -394,12 +383,12 @@ test.describe('cuando algo sale mal', () => {
   });
 
   test('el servidor rechaza un campo: el mensaje aparece en ese campo', async ({ page }) => {
-    await mockServer(page, { draft: ({ json }) => json(422, { error: 'validacion', message: 'Revisá los datos del pedido', fields: { widthMm: 'La medida debe ser mayor a cero' } }) });
+    await mockServer(page, { draft: ({ json }) => json(422, { error: 'validacion', message: 'Revisá los datos del pedido', fields: { quantity: 'La cantidad no es válida' } }) });
     await page.goto('/pedido.html');
     await fillOrder(page);
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
-    await expect(page.locator('#ancho-error')).toHaveText('La medida debe ser mayor a cero');
-    await expect(page.locator('#ancho')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#cantidad-error')).toHaveText('La cantidad no es válida');
+    await expect(page.locator('#cantidad')).toHaveAttribute('aria-invalid', 'true');
   });
 
   test('el servidor rechaza el archivo por su contenido: se muestra y se pide quitarlo', async ({ page }) => {
@@ -471,10 +460,10 @@ test.describe('accesibilidad y diseño', () => {
     await page.goto('/pedido.html');
     await page.getByRole('radio', { name: 'Tarjetas' }).focus();
     await page.keyboard.press('Space');
-    await expect(page.locator('#ancho')).toHaveValue('9');
+    await expect(page.getByRole('radio', { name: 'Tarjetas' })).toBeChecked();
   });
 
-  test('mientras se sube se avisa con el progreso y la barra', async ({ page }) => {
+  test('al enviar se abre un diálogo que explica que se están subiendo los archivos, y se cierra al terminar', async ({ page }) => {
     await mockServer(page, {
       chunkHook: async (n) => {
         if (n === 2) await new Promise((resolve) => setTimeout(resolve, 600));
@@ -483,9 +472,21 @@ test.describe('accesibilidad y diseño', () => {
     await page.goto('/pedido.html');
     await fillOrder(page);
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
-    await expect(page.locator('#progreso')).toBeVisible();
+    const dialog = page.getByRole('dialog', { name: /Estamos subiendo/ });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('No cierres esta pestaña');
     await expect(page.locator('#progreso-texto')).toContainText('Subiendo');
     await expect(page.locator('#numero-pedido')).toHaveText('P-2026-0001');
+    await expect(dialog).toBeHidden();
+  });
+
+  test('si falla la subida el diálogo se cierra y el error queda visible en el formulario', async ({ page }) => {
+    await mockServer(page, { chunkHook: (n, { json }) => (n === 1 ? json(422, { error: 'archivo_invalido', code: 'x', message: 'Archivo inválido' }) : undefined) });
+    await page.goto('/pedido.html');
+    await fillOrder(page);
+    await page.getByRole('button', { name: /Enviar pedido/ }).click();
+    await expect(page.locator('#estado')).toContainText('Archivo inválido');
+    await expect(page.getByRole('dialog')).toBeHidden();
   });
 });
 

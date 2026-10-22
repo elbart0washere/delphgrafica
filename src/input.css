@@ -211,9 +211,42 @@
   .fab:hover { filter: brightness(1.12); }
 
   /* Formulario de pedidos (pedido.html). El magenta queda solo para el botón principal (regla 16); el resto usa tinta, cian y amarillo. */
-  .pedido-wrap { max-width: 760px; }
+  /* Dos paneles como el inicio: tinta con el título y los pasos, y gris con el formulario. */
+  .pedido-shell { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); min-height: min(720px, 86vh); }
+  .pedido-side { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 20px; padding: clamp(28px, 5vw, 80px); background: var(--color-ink); color: #fff; }
+  .pedido-side .eyebrow { color: var(--color-mist-3); }
+  .pedido-side .title { margin-top: 0; color: #fff; }
+  .pedido-side .title em { display: block; font-style: normal; color: var(--color-brand-yellow); }
+  .pedido-side .pedido-intro { margin: 0; color: var(--color-mist-2); max-width: 34ch; }
+  .pedido-side .link { border-color: #fff; }
+  .wiz-steps { display: grid; gap: 10px; margin: 8px 0 0; padding: 0; list-style: none; }
+  .wiz-steps li { display: flex; align-items: center; gap: 12px; font-weight: 600; color: #a8a8a8; }
+  .wiz-steps b { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; border: 2px solid currentColor; border-radius: 50%; font-size: .8rem; }
+  .wiz-steps .now { color: #fff; }
+  .wiz-steps .now b { background: var(--color-brand-yellow); border-color: var(--color-brand-yellow); color: var(--color-ink); }
+  .wiz-steps .done { color: var(--color-brand-yellow); }
+  .pedido-main { display: flex; justify-content: center; align-items: flex-start; padding: clamp(20px, 4vw, 64px); background: var(--color-mist); }
+  .pedido-main > * { width: 100%; max-width: 620px; }
   .pedido-intro { color: var(--color-muted); margin: 16px 0; max-width: 56ch; }
-  .pedido-form { margin-top: 32px; gap: 36px; }
+  .pedido-form { gap: 24px; }
+  .pedido-form > * { min-width: 0; }
+  .wiz-bar { display: flex; gap: 6px; }
+  .wiz-bar i { flex: 1; height: 6px; background: var(--color-mist-2); }
+  .wiz-bar i.on { background: var(--color-brand-cyan); }
+  .wiz-paso { margin: -12px 0 0; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted); }
+  .wiz-nav { align-items: center; justify-content: space-between; }
+  .wiz-nav .btn { margin-left: auto; }
+  .wiz-back { display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; padding: 0 12px; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
+  .wiz-back:hover { text-decoration: underline; text-underline-offset: 6px; }
+  .qty { display: flex; max-width: 260px; }
+  .card .qty input { flex: 1; min-width: 0; min-height: 56px; border-radius: 0; font-size: 1.4rem; font-weight: 800; text-align: center; }
+  .qty-btn { flex: none; width: 56px; min-height: 56px; border: 1px solid #767676; border-radius: 2px; background: #fff; font: inherit; font-size: 1.6rem; font-weight: 700; cursor: pointer; }
+  .qty-btn:hover { background: var(--color-mist); }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .preset { min-width: 56px; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-mist-3); border-radius: 2px; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  .preset:hover { border-color: var(--color-ink); }
+  .finishing { min-width: 0; margin: 0; padding: 0; border: 0; }
+  .finishing legend { padding: 0; margin-bottom: 10px; font-weight: 600; font-size: .9rem; }
   .legal h2 { margin: 32px 0 8px; font-size: 1.25rem; font-weight: 800; }
   .legal p, .legal li { max-width: 68ch; }
   .legal ul { padding-left: 1.2em; list-style: disc; }
@@ -228,11 +261,21 @@
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip { position: relative; display: inline-block; margin: 0; }
-  .card .chip input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+  .card .chip input { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
   .chip span { display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px; border: 2px solid var(--color-ink); border-radius: 2px; background: #fff; font-weight: 600; }
   .chip input:checked + span { background: var(--color-ink); color: #fff; }
   .chip input:focus-visible + span { outline: 3px solid var(--color-accent); outline-offset: 3px; }
-
+  /* En el formulario las opciones son tarjetas grandes, de a una por renglón en el celular. */
+  .pedido-form .chips { display: grid; gap: 10px; }
+  .pedido-form .chip { display: block; }
+  .pedido-form .chip span { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left; width: 100%; min-height: 64px; padding: 10px 56px 10px 16px; border: 1px solid #767676; font-size: 1.05rem; font-weight: 700; }
+  .pedido-form .chip span small { color: var(--color-muted); font-size: .85rem; font-weight: 400; }
+  .pedido-form .chip span::after { content: ""; position: absolute; right: 16px; top: 50%; box-sizing: border-box; width: 24px; height: 24px; margin-top: -12px; border: 2px solid var(--color-mist-3); border-radius: 50%; background: #fff; }
+  .pedido-form .chip:hover span { border-color: var(--color-ink); }
+  .pedido-form .chip input:checked + span { border: 2px solid var(--color-ink); background: var(--color-cyan-100); color: var(--color-ink); }
+  .pedido-form .chip input:checked + span small { color: var(--color-ink); }
+  .pedido-form .chip input:checked + span::after { border-color: var(--color-ink); background: var(--color-ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5l10-10'/%3E%3C/svg%3E") center / 70% no-repeat; }
+  @media (min-width: 620px) { .pedido-form .chips { grid-template-columns: 1fr 1fr; } }
 
   .drop { display: grid; justify-items: center; gap: 6px; width: 100%; min-height: 44px; padding: 32px 16px; border: 2px dashed #767676; border-radius: 2px; background: var(--color-mist); color: inherit; font: inherit; text-align: center; cursor: pointer; }
   .drop:hover, .drop.over { border-color: var(--color-ink); background: var(--color-cyan-100); }
@@ -300,6 +343,9 @@
   }
 
   @media (max-width: 900px) {
+    .pedido-shell { grid-template-columns: 1fr; min-height: 0; }
+    .pedido-side { gap: 12px; padding: 28px 24px; }
+    .wiz-steps { display: none; }
     .top .wrap { min-height: 84px; }
     .logo img { height: 64px; }
     .hero { grid-template-columns: 1fr; min-height: 0; }
@@ -341,6 +387,10 @@
 
   @media (max-width: 520px) {
     .row { grid-template-columns: 1fr; }
+    .pedido-main { padding: 16px 12px 0; }
+    /* Los botones de paso quedan fijos abajo: se alcanzan con el pulgar sin volver a subir. */
+    .wiz-nav { position: sticky; bottom: 0; z-index: 5; margin: 0 calc(-1 * clamp(20px, 3vw, 40px)) calc(-1 * clamp(20px, 3vw, 40px)); padding: 12px clamp(20px, 3vw, 40px); background: #fff; border-top: 1px solid var(--color-mist-2); }
+    .wiz-nav .btn { flex: 1; }
     .summary { grid-template-columns: 1fr; gap: 2px; }
     .summary dd { margin-bottom: 10px; }
     .foot-grid { grid-template-columns: 1fr; }

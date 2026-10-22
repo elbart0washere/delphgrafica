@@ -43,9 +43,17 @@ describe('pedido.html: la página del formulario de pedidos', () => {
     }
   });
 
-  it('los tres pasos son grupos con título (el orden importa y se anuncia)', () => {
-    const steps = [...pedido.querySelectorAll('#form-pedido fieldset.step legend')].map((l) => textOf(l).replace(/^\d/, '').trim());
-    expect(steps).toEqual(['¿Qué querés imprimir?', 'Tus archivos', '¿Cómo te avisamos?']);
+  it('los cuatro pasos son grupos con título (el orden importa y se anuncia)', () => {
+    const steps = [...pedido.querySelectorAll('#form-pedido fieldset.step > legend')].map((l) => textOf(l));
+    expect(steps).toEqual(['¿Qué querés imprimir?', '¿Cuántas necesitás?', 'Tus archivos', '¿Cómo te avisamos?']);
+  });
+
+  it('el formulario avanza de a un paso: Atrás y Siguiente, con el botón de enviar recién al final', () => {
+    expect(pedido.querySelector('#btn-atras').getAttribute('type')).toBe('button');
+    expect(pedido.querySelector('#btn-siguiente').getAttribute('type')).toBe('button');
+    expect(pedido.querySelector('#btn-enviar').getAttribute('type')).toBe('submit');
+    expect(pedido.querySelector('#paso-actual').getAttribute('role')).toBe('status');
+    expect(pedido.querySelectorAll('#form-pedido .wiz-bar i')).toHaveLength(4);
   });
 
   it('acepta solo los formatos que acepta el sistema, hasta varios archivos, con la entrada nativa oculta', () => {
@@ -75,12 +83,16 @@ describe('pedido.html: la página del formulario de pedidos', () => {
     expect(pedido.querySelector('#form-pedido a[href*="wa.me"]')).toBeNull();
   });
 
-  it('no pide medidas y las terminaciones son solo las del taller', () => {
+  it('no pide medidas y las terminaciones son dos casillas separadas, ocultas hasta que se elige un banner', () => {
     expect(pedido.querySelector('#ancho')).toBeNull();
     expect(pedido.querySelector('#alto')).toBeNull();
     expect(pedido.querySelector('#spec')).toBeNull();
-    const options = [...pedido.querySelectorAll('#terminacion option')].map((o) => textOf(o));
-    expect(options).toEqual(['Sin terminación', 'Ojales y bolsillo', 'Otra (la aclaro abajo)']);
+    expect(pedido.querySelector('#terminacion')).toBeNull(); // ya no hay lista desplegable con "Ojales y bolsillo" junto
+    const group = pedido.querySelector('fieldset#terminacion-grupo');
+    expect(group.hasAttribute('hidden')).toBe(true);
+    const boxes = [...group.querySelectorAll('input[type="checkbox"][name="terminacion"]')];
+    expect(boxes.map((b) => b.value)).toEqual(['Ojales', 'Bolsillos']);
+    expect(boxes.some((b) => b.hasAttribute('checked'))).toBe(false);
   });
 
   it('la subida se avisa en un diálogo modal (visible aunque el botón quede abajo), cerrado al principio', () => {

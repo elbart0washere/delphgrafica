@@ -28,7 +28,7 @@ describe('pedido.html: la página del formulario de pedidos', () => {
 
   it('cada campo tiene su etiqueta, y cada uno apunta a un mensaje de error que existe', () => {
     const fields = [...pedido.querySelectorAll('#form-pedido input:not([type="file"]):not([type="radio"]), #form-pedido select, #form-pedido textarea')];
-    expect(fields.length).toBeGreaterThanOrEqual(9);
+    expect(fields.length).toBeGreaterThanOrEqual(7);
     for (const field of fields) {
       expect(pedido.querySelector(`label[for="${field.id}"]`), `etiqueta de #${field.id}`).not.toBeNull();
       for (const id of (field.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean)) {
@@ -64,19 +64,39 @@ describe('pedido.html: la página del formulario de pedidos', () => {
     expect(pedido.querySelector('#consentimiento').hasAttribute('checked')).toBe(false); // nunca viene tildado de fábrica
   });
 
-  it('el botón de enviar es el único con el color de acento, y hay una alternativa por WhatsApp', () => {
+  it('el botón de enviar es el único con el color de acento', () => {
     expect(pedido.querySelector('#btn-enviar').className).toContain('btn-cta');
     expect(pedido.querySelectorAll('.btn-cta')).toHaveLength(1);
-    const wa = [...pedido.querySelectorAll('.form-actions a')].find((a) => a.href.includes('wa.me'));
-    expect(wa.getAttribute('rel')).toContain('noopener');
+  });
+
+  it('mientras se carga el pedido no hay accesos a WhatsApp que distraigan: ni en el encabezado, ni flotante, ni en el formulario', () => {
+    expect(pedido.querySelector('#fab-whatsapp')).toBeNull();
+    expect(pedido.querySelector('header.top .btn-wa')).toBeNull();
+    expect(pedido.querySelector('#form-pedido a[href*="wa.me"]')).toBeNull();
+  });
+
+  it('no pide medidas y las terminaciones son solo las del taller', () => {
+    expect(pedido.querySelector('#ancho')).toBeNull();
+    expect(pedido.querySelector('#alto')).toBeNull();
+    expect(pedido.querySelector('#spec')).toBeNull();
+    const options = [...pedido.querySelectorAll('#terminacion option')].map((o) => textOf(o));
+    expect(options).toEqual(['Sin terminación', 'Ojales y bolsillo', 'Otra (la aclaro abajo)']);
+  });
+
+  it('la subida se avisa en un diálogo modal (visible aunque el botón quede abajo), cerrado al principio', () => {
+    const dialog = pedido.querySelector('dialog#dialogo-subida');
+    expect(dialog).not.toBeNull();
+    expect(dialog.hasAttribute('open')).toBe(false);
+    expect(dialog.getAttribute('aria-labelledby')).toBe('subida-titulo');
+    expect(dialog.querySelector('#progreso progress#barra')).not.toBeNull();
+    expect(textOf(dialog.querySelector('#subida-titulo'))).toMatch(/subiendo/i);
   });
 
   it('tiene un lugar para la verificación anti-robots, la barra de progreso y la pantalla final, ocultos al principio', () => {
     expect(pedido.querySelector('#verificacion-robots')).not.toBeNull();
     // Un id "turnstile" haría que window.turnstile sea el <div> y no la API de Cloudflare (los navegadores exponen cada id en window).
     expect(pedido.getElementById('turnstile')).toBeNull();
-    expect(pedido.querySelector('#progreso').hasAttribute('hidden')).toBe(true);
-    expect(pedido.querySelector('progress#barra')).not.toBeNull();
+        expect(pedido.querySelector('progress#barra')).not.toBeNull();
     expect(pedido.querySelector('#pedido-listo').hasAttribute('hidden')).toBe(true);
     expect(pedido.querySelector('#numero-pedido')).not.toBeNull();
   });

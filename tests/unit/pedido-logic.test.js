@@ -5,12 +5,9 @@ import {
   MiB,
   buildDraftPayload,
   checkFile,
-  cmToMm,
   contentRange,
   describeApiError,
   formatBytes,
-  formatCm,
-  parseCm,
   planChunks,
   validateOrder,
 } from '../../js/pedido-logic.js';
@@ -18,10 +15,8 @@ import {
 const file = (name = 'arte.jpg', size = 1_000_000) => ({ name, size });
 const valid = (over = {}) => ({
   product: 'tarjetas',
-  width: '9',
-  height: '5',
   quantity: '500',
-  finishing: 'Laminado mate',
+  finishing: 'Ojales y bolsillo',
   notes: '',
   name: 'María Pérez',
   email: 'maria@example.com',
@@ -29,35 +24,6 @@ const valid = (over = {}) => ({
   consent: true,
   files: [file()],
   ...over,
-});
-
-describe('medidas en centímetros', () => {
-  it.each([
-    ['9', 9],
-    ['9,5', 9.5],
-    ['9.5', 9.5],
-    ['  14,8 ', 14.8],
-    ['0,5', 0.5],
-  ])('parseCm(%j) = %d (acepta coma o punto)', (text, cm) => {
-    expect(parseCm(text)).toBe(cm);
-  });
-
-  it.each(['', '   ', 'abc', '-3', '0', '1e3', '9,5,2', '9 cm', 'Infinity', '０'])('parseCm(%j) es inválido', (text) => {
-    expect(Number.isNaN(parseCm(text))).toBe(true);
-  });
-
-  it('cmToMm redondea al milímetro (el sistema trabaja en mm)', () => {
-    expect(cmToMm(9)).toBe(90);
-    expect(cmToMm(14.8)).toBe(148);
-    expect(cmToMm(0.04)).toBe(0); // se rechaza después por ser < 1 mm
-    expect(cmToMm(21.55)).toBe(216);
-  });
-
-  it('formatCm vuelve de mm a cm con coma, sin decimales de más', () => {
-    expect(formatCm(90)).toBe('9');
-    expect(formatCm(148)).toBe('14,8');
-    expect(formatCm(2000)).toBe('200');
-  });
 });
 
 describe('tamaños', () => {
@@ -135,11 +101,6 @@ describe('validar el pedido (mismas reglas que el servidor, para avisar antes de
     ['name', { name: '   ' }],
     ['name', { name: 'x'.repeat(101) }],
     ['product', { product: '' }],
-    ['width', { width: '' }],
-    ['width', { width: '0' }],
-    ['width', { width: '3001' }],
-    ['height', { height: 'abc' }],
-    ['height', { height: '3001' }],
     ['quantity', { quantity: '' }],
     ['quantity', { quantity: '0' }],
     ['quantity', { quantity: '2,5' }],
@@ -156,8 +117,11 @@ describe('validar el pedido (mismas reglas que el servidor, para avisar antes de
     expect(r.errors[field], JSON.stringify(r.errors)).toBeTruthy();
   });
 
-  it('acepta medidas con coma y el límite exacto de 300 cm', () => {
-    expect(validateOrder(valid({ width: '14,8', height: '3000' })).ok).toBe(true);
+  it('no pide medidas: el taller las toma del archivo', () => {
+    const r = validateOrder(valid());
+    expect(r.ok).toBe(true);
+    expect(r.errors).not.toHaveProperty('width');
+    expect(r.errors).not.toHaveProperty('height');
   });
 
   it('los límites de archivos: al menos 1, hasta 5, y 800 MB en total', () => {
@@ -176,8 +140,8 @@ describe('validar el pedido (mismas reglas que el servidor, para avisar antes de
   });
 
   it('firstInvalid sigue el orden del formulario', () => {
-    const r = validateOrder(valid({ name: '', width: '', consent: false, files: [] }));
-    expect(r.firstInvalid).toBe('width');
+    const r = validateOrder(valid({ name: '', consent: false, files: [] }));
+    expect(r.firstInvalid).toBe('files');
   });
 
   it('los límites coinciden con los del servidor', () => {
@@ -186,22 +150,22 @@ describe('validar el pedido (mismas reglas que el servidor, para avisar antes de
 });
 
 describe('armar el pedido para el servidor', () => {
-  it('convierte a milímetros y manda solo lo que completó la persona', () => {
-    const body = buildDraftPayload(valid({ width: '9', height: '14,8', whatsapp: '', email: 'maria@example.com' }), 'tok-123');
+  it('manda solo lo que completó la persona, sin medidas', () => {
+    const body = buildDraftPayload(valid({ whatsapp: '', email: 'maria@example.com' }), 'tok-123');
     expect(body).toEqual({
       turnstileToken: 'tok-123',
       consent: true,
       product: 'tarjetas',
-      widthMm: 90,
-      heightMm: 148,
       quantity: 500,
-      finishing: 'Laminado mate',
+      finishing: 'Ojales y bolsillo',
       name: 'María Pérez',
       email: 'maria@example.com',
       files: [{ name: 'arte.jpg', size: 1_000_000 }],
     });
     expect(body).not.toHaveProperty('whatsapp');
     expect(body).not.toHaveProperty('notes');
+    expect(body).not.toHaveProperty('widthMm');
+    expect(body).not.toHaveProperty('heightMm');
   });
 
   it('recorta espacios y manda las notas y el WhatsApp si existen', () => {
@@ -321,30 +285,5 @@ describe('errores del servidor, traducidos a algo que se le pueda mostrar a la p
 
   it('la API es la del sistema de pedidos', () => {
     expect(API_BASE).toBe('https://pedidos.delphgrafica.com.ar');
-  });
-});
-
-import { idealDpi, requiredPixels } from '../../js/pedido-logic.js';
-
-describe('resolución ideal para mostrar antes de subir (misma regla que el servidor)', () => {
-  const product = (over = {}) => ({ slug: 'tarjetas', bleedMm: 3, targetDpi: 300, ...over });
-
-  it('un producto con dpi propio lo usa', () => {
-    expect(idealDpi(product({ targetDpi: 200 }), 9, 5)).toBe(200);
-  });
-
-  it('en medida libre sale por tramos según el lado largo, contando el sangrado', () => {
-    const libre = product({ targetDpi: null, bleedMm: 10 });
-    expect(idealDpi(libre, 30, 20)).toBe(300); // 30 cm + 2 cm de sangrado = 32 cm, hasta A3 (42 cm)
-    expect(idealDpi(libre, 41, 20)).toBe(150); // 41 + 2 = 43 cm, pasa de A3
-    expect(idealDpi(libre, 98, 50)).toBe(150); // hasta 1 m: 98 + 2 = 100 cm
-    expect(idealDpi(libre, 99, 50)).toBe(100); // 99 + 2 = 101 cm
-    expect(idealDpi(libre, 298, 100)).toBe(100); // 298 + 2 = 300 cm = 3 m
-    expect(idealDpi(libre, 299, 100)).toBe(50);
-  });
-
-  it('los píxeles necesarios: medida + sangrado por lado, a esa resolución', () => {
-    // 9 × 5 cm con 3 mm de sangrado por lado = 9,6 × 5,6 cm → 3,78 × 2,2 pulgadas a 300 dpi
-    expect(requiredPixels(9, 5, 3, 300)).toEqual({ width: 1134, height: 661 });
   });
 });

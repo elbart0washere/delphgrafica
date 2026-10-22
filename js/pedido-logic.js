@@ -17,13 +17,10 @@ export const LIMITS = {
   fileBytes: 300 * MiB,
   totalBytes: 800 * MiB,
   quantity: 1_000_000,
-  sideCm: 3000,
 };
 
 export const MESSAGES = {
   product: 'Elegí qué querés imprimir.',
-  size: 'Ingresá la medida en centímetros, por ejemplo 9 o 14,8.',
-  sizeMax: `La medida máxima es ${LIMITS.sideCm} cm.`,
   quantity: 'Ingresá una cantidad entera, de 1 en adelante.',
   quantityMax: `La cantidad máxima es ${LIMITS.quantity.toLocaleString('es-AR')}.`,
   nameRequired: 'Contanos tu nombre.',
@@ -42,20 +39,7 @@ export const MESSAGES = {
   unknown: 'Algo salió mal. Probá de nuevo en unos minutos o escribinos por WhatsApp.',
 };
 
-// ---------------------------------------------------------------------------------------------- medidas y tamaños
-
-/** "9", "9,5" o "9.5" (hasta 2 decimales) → número. NaN si no es un número positivo. */
-export function parseCm(text) {
-  const clean = String(text ?? '').trim();
-  if (!/^\d+([.,]\d{1,2})?$/.test(clean)) return NaN;
-  const value = Number(clean.replace(',', '.'));
-  return value > 0 ? value : NaN;
-}
-
-/** El sistema trabaja en milímetros. El pequeño margen evita que 21,55 × 10 = 215,4999… redondee para abajo. */
-export const cmToMm = (cm) => Math.round(cm * 10 + 1e-9);
-
-export const formatCm = (mm) => String(Math.round(mm) / 10).replace('.', ',');
+// ---------------------------------------------------------------------------------------------- tamaños
 
 export function formatBytes(bytes) {
   if (bytes < MiB) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -97,7 +81,7 @@ const WHATSAPP_PATTERN = /^\+?[\d\s\-()]+$/;
 const DIGITS = { min: 8, max: 15 };
 
 // Orden del formulario: de ahí sale a qué campo se lleva el foco cuando hay errores.
-const ORDER = ['product', 'width', 'height', 'quantity', 'finishing', 'files', 'name', 'email', 'whatsapp', 'notes', 'consent'];
+const ORDER = ['product', 'quantity', 'finishing', 'files', 'name', 'email', 'whatsapp', 'notes', 'consent'];
 
 /**
  * Valida el pedido completo. `firstInvalid` es el primer campo con error según el orden del formulario;
@@ -107,12 +91,6 @@ export function validateOrder(fields) {
   const errors = {};
 
   if (!String(fields.product ?? '').trim()) errors.product = MESSAGES.product;
-
-  for (const [key, text] of [['width', fields.width], ['height', fields.height]]) {
-    const cm = parseCm(text);
-    if (Number.isNaN(cm) || cmToMm(cm) < 1) errors[key] = MESSAGES.size;
-    else if (cm > LIMITS.sideCm) errors[key] = MESSAGES.sizeMax;
-  }
 
   const quantityText = String(fields.quantity ?? '').trim();
   if (!/^\d+$/.test(quantityText) || Number(quantityText) < 1) errors.quantity = MESSAGES.quantity;
@@ -154,15 +132,13 @@ export function validateOrder(fields) {
 
 // ---------------------------------------------------------------------------------------------- pedido al servidor
 
-/** Cuerpo de `POST /api/v1/drafts`: medidas en mm y solo los datos que la persona completó. */
+/** Cuerpo de `POST /api/v1/drafts`: solo los datos que la persona completó. */
 export function buildDraftPayload(fields, turnstileToken) {
   const text = (value) => String(value ?? '').trim();
   const body = {
     turnstileToken,
     consent: true,
     product: text(fields.product),
-    widthMm: cmToMm(parseCm(fields.width)),
-    heightMm: cmToMm(parseCm(fields.height)),
     quantity: Number(text(fields.quantity)),
     name: text(fields.name),
     files: (fields.files ?? []).map(({ name, size }) => ({ name, size })),
@@ -218,24 +194,4 @@ export function describeApiError(status, body, headers = {}) {
   if (status === 410) return { kind: 'expired', message };
   if (status === 404) return { kind: 'not-found', message };
   return { kind: 'unknown', message: MESSAGES.unknown };
-}
-
-// ---------------------------------------------------------------------------------------------- resolución ideal
-
-const MM_PER_INCH = 25.4;
-
-/** dpi ideal: el del producto o, en medida libre, por tramos según el lado largo con sangrado (300 hasta A3, 150 hasta 1 m, 100 hasta 3 m, 50 más). */
-export function idealDpi(product, widthCm, heightCm) {
-  if (product.targetDpi) return product.targetDpi;
-  const longSideMm = Math.max(widthCm, heightCm) * 10 + 2 * product.bleedMm;
-  if (longSideMm <= 420) return 300;
-  if (longSideMm <= 1000) return 150;
-  if (longSideMm <= 3000) return 100;
-  return 50;
-}
-
-/** Píxeles que necesita un archivo para esa medida (con sangrado por lado) a esa resolución. */
-export function requiredPixels(widthCm, heightCm, bleedMm, dpi) {
-  const px = (cm) => Math.round(((cm * 10 + 2 * bleedMm) / MM_PER_INCH) * dpi);
-  return { width: px(widthCm), height: px(heightCm) };
 }

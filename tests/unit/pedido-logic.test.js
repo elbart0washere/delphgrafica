@@ -8,7 +8,10 @@ import {
   contentRange,
   describeApiError,
   formatBytes,
+  finishingText,
   planChunks,
+  showsFinishing,
+  stepOf,
   validateOrder,
 } from '../../js/pedido-logic.js';
 
@@ -285,5 +288,38 @@ describe('errores del servidor, traducidos a algo que se le pueda mostrar a la p
 
   it('la API es la del sistema de pedidos', () => {
     expect(API_BASE).toBe('https://pedidos.delphgrafica.com.ar');
+  });
+});
+
+describe('terminaciones del banner', () => {
+  it('ojales y bolsillos solo se ofrecen para el banner', () => {
+    expect(showsFinishing('banner')).toBe(true);
+    for (const slug of ['tarjetas', 'folletos', 'vinilo', 'stickers', 'lona', 'promo', '', undefined]) expect(showsFinishing(slug), String(slug)).toBe(false);
+  });
+
+  it('finishingText junta lo elegido en el texto que ya recibe el sistema de pedidos', () => {
+    expect(finishingText([])).toBe('');
+    expect(finishingText(['Ojales'])).toBe('Ojales');
+    expect(finishingText(['Bolsillos'])).toBe('Bolsillos');
+    expect(finishingText(['Ojales', 'Bolsillos'])).toBe('Ojales y Bolsillos');
+  });
+
+  it('el texto armado cabe en el límite de la terminación', () => {
+    expect(finishingText(['Ojales', 'Bolsillos']).length).toBeLessThanOrEqual(LIMITS.finishing);
+  });
+});
+
+describe('pasos del formulario', () => {
+  it('cada campo con error pertenece a un paso (1 producto, 2 cantidad, 3 archivos, 4 contacto)', () => {
+    expect(stepOf('product')).toBe(0);
+    expect(stepOf('quantity')).toBe(1);
+    expect(stepOf('finishing')).toBe(1);
+    expect(stepOf('files')).toBe(2);
+    expect(stepOf('files.3')).toBe(2);
+    for (const key of ['name', 'email', 'whatsapp', 'contact', 'notes', 'consent']) expect(stepOf(key), key).toBe(3);
+  });
+
+  it('un campo desconocido cae en el último paso, donde está el botón de enviar', () => {
+    expect(stepOf('otra-cosa')).toBe(3);
   });
 });

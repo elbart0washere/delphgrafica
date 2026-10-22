@@ -7,7 +7,10 @@ import {
   TURNSTILE_SITE_KEY,
   buildDraftPayload,
   checkFile,
+  finishingText,
   formatBytes,
+  showsFinishing,
+  stepOf,
   validateOrder,
 } from './pedido-logic.js';
 import { ApiError, createDraft, finalizeOrder, uploadFile } from './pedido-upload.js';
@@ -25,6 +28,7 @@ const state = {
   turnstileToken: null,
   turnstileWidget: null,
   draft: null, // lo que devolvió el servidor al crear el pedido: { draftToken, chunkSize, files: [{ index, uploadToken }] }
+  step: 0, // paso del formulario que se ve (0 a 3)
   fields: null, // lo que se envió, para el resumen y para reintentar sin pedir nada de nuevo
   busy: false,
 };
@@ -44,7 +48,7 @@ const ERROR_IDS = {
   notes: 'notas-error',
   consent: 'consentimiento-error',
 };
-const INPUT_IDS = { quantity: 'cantidad', finishing: 'terminacion', name: 'nombre', email: 'email', whatsapp: 'whatsapp', notes: 'notas', consent: 'consentimiento' };
+const INPUT_IDS = { quantity: 'cantidad', name: 'nombre', email: 'email', whatsapp: 'whatsapp', notes: 'notas', consent: 'consentimiento' };
 
 function clearErrors() {
   for (const id of Object.values(ERROR_IDS)) $(id).textContent = '';
@@ -70,7 +74,13 @@ function showErrors(errors) {
 
 function focusField(name) {
   const target =
-    name === 'product' ? form.querySelector('input[name="producto"]') : name === 'files' ? $('zona-archivos') : $(INPUT_IDS[name] ?? '');
+    name === 'product'
+      ? form.querySelector('input[name="producto"]')
+      : name === 'finishing'
+        ? form.querySelector('input[name="terminacion"]')
+        : name === 'files'
+          ? $('zona-archivos')
+          : $(INPUT_IDS[name] ?? '');
   target?.focus();
 }
 
@@ -122,7 +132,14 @@ async function loadCatalog() {
 function selectProduct(product) {
   state.product = product;
   $('producto-error').textContent = '';
+  // Ojales y bolsillos son del banner: con otro producto se ocultan y lo que se había marcado no viaja en el pedido.
+  const offered = showsFinishing(product.slug);
+  $('terminacion-grupo').hidden = !offered;
+  if (!offered) for (const box of finishingBoxes()) box.checked = false;
 }
+
+const finishingBoxes = () => [...form.querySelectorAll('input[name="terminacion"]')];
+const chosenFinishing = () => (state.product && showsFinishing(state.product.slug) ? finishingBoxes().filter((b) => b.checked).map((b) => b.value) : []);
 
 // ---------------------------------------------------------------------------------------------- archivos
 
@@ -245,7 +262,10 @@ function setupDropzone() {
 // id haría creer que la verificación ya está cargada. Por eso se comprueba que sea la función real y no solo que exista.
 const turnstileReady = () => typeof window.turnstile?.render === 'function';
 
+let turnstileStarted = false;
 function setupTurnstile() {
+  if (turnstileStarted) return;
+  turnstileStarted = true; // la verificación se carga al llegar al último paso, donde se ve
   const onReady = () => {
     state.turnstileWidget = window.turnstile.render('#verificacion-robots', {
       sitekey: TURNSTILE_SITE_KEY,
@@ -282,7 +302,7 @@ function readFields() {
   return {
     product: state.product?.slug ?? '',
     quantity: $('cantidad').value,
-    finishing: $('terminacion').value,
+    finishing: finishingText(chosenFinishing()),
     name: $('nombre').value,
     email: $('email').value,
     whatsapp: $('whatsapp').value,
@@ -295,7 +315,7 @@ function readFields() {
 function setBusy(busy) {
   state.busy = busy;
   form.setAttribute('aria-busy', String(busy));
-  for (const control of form.querySelectorAll('input, select, textarea, #btn-enviar')) control.disabled = busy;
+  for (const control of form.querySelectorAll('input, select, textarea, button.qty-btn, button.preset, #btn-enviar, #btn-atras, #btn-siguiente')) control.disabled = busy;
   $('zona-archivos').disabled = busy || Boolean(state.draft);
   const dialog = $('dialogo-subida');
   if (busy && !dialog.open) dialog.showModal();
@@ -324,6 +344,7 @@ function handleError(error) {
       resetTurnstile();
       showErrors(info.fields);
       setStatus(info.message);
+      showStep(Math.min(...Object.keys(info.fields).map(stepOf), LAST_STEP)); // el error puede ser de un paso anterior
       break;
     }
     case 'antibot':
@@ -410,11 +431,14 @@ async function send() {
 form.addEventListener('submit', (event) => {
   event.preventDefault();
   if (state.busy) return;
+  // Enter dentro de un campo envía el formulario: antes del último paso equivale a "Siguiente".
+  if (state.step < LAST_STEP) return goNext();
   clearErrors();
   const result = validateOrder(readFields());
   if (!result.ok) {
     showErrors(result.errors);
     setStatus('Revisá los campos marcados.');
+    showStep(stepOf(result.firstInvalid));
     focusField(result.firstInvalid);
     return;
   }
@@ -429,6 +453,66 @@ $('btn-reintentar').addEventListener('click', () => {
   clearErrors();
   send();
 });
+
+// ---------------------------------------------------------------------------------------------- pasos
+
+const LAST_STEP = 3;
+const STEP_NAMES = ['Qué imprimir', 'Cantidad', 'Tu archivo', 'Cómo avisarte'];
+const steps = [...form.querySelectorAll('fieldset.step')];
+
+/** Muestra el paso `n`. Con `focus` lleva el foco al título del paso, para que un lector de pantalla lo anuncie. */
+function showStep(n, { focus = false } = {}) {
+  state.step = n;
+  steps.forEach((step, i) => (step.hidden = i !== n));
+  [...form.querySelectorAll('.wiz-bar i')].forEach((bar, i) => bar.classList.toggle('on', i <= n));
+  document.querySelectorAll('.wiz-steps li').forEach((li, i) => {
+    li.classList.toggle('done', i < n);
+    li.classList.toggle('now', i === n);
+  });
+  $('paso-actual').textContent = `Paso ${n + 1} de ${LAST_STEP + 1} · ${STEP_NAMES[n]}`;
+  $('btn-atras').hidden = n === 0;
+  $('btn-siguiente').hidden = n === LAST_STEP;
+  $('btn-enviar').hidden = n !== LAST_STEP;
+  if (n === LAST_STEP) setupTurnstile();
+  if (focus) {
+    steps[n].querySelector('legend').focus({ preventScroll: true });
+    form.scrollIntoView({ block: 'start' });
+  }
+}
+
+/** Valida solo los campos del paso actual: lo demás se pide cuando llega su turno. */
+function goNext() {
+  clearErrors();
+  const { errors } = validateOrder(readFields());
+  const here = Object.fromEntries(Object.entries(errors).filter(([key]) => stepOf(key) === state.step));
+  const keys = Object.keys(here);
+  if (keys.length) {
+    showErrors(here);
+    const first = keys[0];
+    focusField(first === 'contact' ? 'email' : first.startsWith('files') ? 'files' : first);
+    return;
+  }
+  showStep(state.step + 1, { focus: true });
+}
+
+$('btn-siguiente').addEventListener('click', goNext);
+$('btn-atras').addEventListener('click', () => {
+  clearErrors();
+  showStep(state.step - 1, { focus: true });
+});
+
+function setupQuantity() {
+  const input = $('cantidad');
+  const set = (value) => {
+    input.value = String(Math.min(LIMITS.quantity, Math.max(1, value)));
+    input.removeAttribute('aria-invalid');
+    $('cantidad-error').textContent = '';
+  };
+  const current = () => (/^\d+$/.test(input.value.trim()) ? Number(input.value.trim()) : 0);
+  $('cantidad-menos').addEventListener('click', () => set(current() - 1));
+  $('cantidad-mas').addEventListener('click', () => set(current() + 1));
+  for (const preset of form.querySelectorAll('.preset')) preset.addEventListener('click', () => set(Number(preset.dataset.cantidad)));
+}
 
 // ---------------------------------------------------------------------------------------------- pantalla final
 
@@ -478,5 +562,6 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 setupDropzone();
-setupTurnstile();
+setupQuantity();
+showStep(0);
 loadCatalog();

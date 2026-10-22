@@ -80,6 +80,17 @@ const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za
 const WHATSAPP_PATTERN = /^\+?[\d\s\-()]+$/;
 const DIGITS = { min: 8, max: 15 };
 
+// Solo el banner ofrece ojales y bolsillos. El resto de los productos no muestra terminación.
+const FINISHING_PRODUCTS = ['banner'];
+export const showsFinishing = (slug) => FINISHING_PRODUCTS.includes(slug);
+
+/** Une las terminaciones elegidas en el texto que recibe el sistema de pedidos (el campo `finishing` no cambió). */
+export const finishingText = (choices) => choices.join(' y ');
+
+// Pasos del formulario (0 producto, 1 cantidad y terminación, 2 archivos, 3 contacto): de ahí sale a qué paso volver cuando hay errores.
+const STEP_OF = { product: 0, quantity: 1, finishing: 1, files: 2 };
+export const stepOf = (key) => STEP_OF[key.split('.')[0]] ?? 3;
+
 // Orden del formulario: de ahí sale a qué campo se lleva el foco cuando hay errores.
 const ORDER = ['product', 'quantity', 'finishing', 'files', 'name', 'email', 'whatsapp', 'notes', 'consent'];
 

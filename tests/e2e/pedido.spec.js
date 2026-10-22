@@ -7,6 +7,8 @@ const PRODUCTS = [
   { slug: 'tarjetas', name: 'Tarjetas', defaultWidthMm: 90, defaultHeightMm: 50, bleedMm: 3, targetDpi: 300 },
   { slug: 'flyer-a5', name: 'Flyer A5', defaultWidthMm: 148, defaultHeightMm: 210, bleedMm: 3, targetDpi: 300 },
   { slug: 'vinilo', name: 'Vinilo', defaultWidthMm: null, defaultHeightMm: null, bleedMm: 10, targetDpi: null },
+  { slug: 'banner', name: 'Banner', defaultWidthMm: null, defaultHeightMm: null, bleedMm: 10, targetDpi: null },
+  { slug: 'lona', name: 'Lona', defaultWidthMm: null, defaultHeightMm: null, bleedMm: 20, targetDpi: null },
 ];
 
 // Reemplazo de la verificación anti-robots de Cloudflare: entrega un token al instante (o nunca, si se pide).
@@ -81,9 +83,24 @@ async function mockServer(page, { autoToken = true, draft, chunkHook, analysis, 
 
 const bytes = (size) => ({ name: 'arte.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(size, 1) });
 
-async function fillOrder(page, { product = 'Tarjetas', files = [bytes(600_000)], contact = { email: 'maria@example.com' } } = {}) {
+const siguiente = (page) => page.getByRole('button', { name: /Siguiente/ }).click();
+
+/** Lleva el formulario hasta el paso de archivos (el 3), eligiendo un producto y dejando la cantidad como está. */
+async function irAArchivos(page, product = 'Tarjetas') {
   await page.getByRole('radio', { name: product }).check();
+  await siguiente(page);
+  await siguiente(page);
+}
+
+/** Completa el pedido recorriendo los cuatro pasos y se queda en el último, listo para enviar. */
+async function fillOrder(page, { product = 'Tarjetas', files = [bytes(600_000)], contact = { email: 'maria@example.com' }, quantity, finishing = [] } = {}) {
+  await page.getByRole('radio', { name: product }).check();
+  await siguiente(page);
+  if (quantity) await page.locator('#cantidad').fill(quantity);
+  for (const name of finishing) await page.getByLabel(name).check();
+  await siguiente(page);
   await page.locator('#archivos').setInputFiles(files);
+  await siguiente(page);
   await page.locator('#nombre').fill('María Pérez');
   if (contact.email) await page.locator('#email').fill(contact.email);
   if (contact.whatsapp) await page.locator('#whatsapp').fill(contact.whatsapp);
@@ -103,9 +120,7 @@ test.describe('recorrido completo', () => {
     await page.goto('/pedido.html');
     await expect(page.getByRole('radio', { name: 'Tarjetas' })).toBeVisible();
 
-    await fillOrder(page, { files: [bytes(600_000)] });
-    await page.locator('#cantidad').fill('500');
-    await page.getByLabel('Terminación').selectOption('Ojales y bolsillo');
+    await fillOrder(page, { files: [bytes(600_000)], quantity: '500' });
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
 
     await expect(page.locator('#numero-pedido')).toHaveText('P-2026-0001');
@@ -119,12 +134,12 @@ test.describe('recorrido completo', () => {
       consent: true,
       product: 'tarjetas',
       quantity: 500,
-      finishing: 'Ojales y bolsillo',
       name: 'María Pérez',
       email: 'maria@example.com',
       files: [{ name: 'arte.jpg', size: 600_000 }],
     });
     expect(seen.drafts[0]).not.toHaveProperty('whatsapp');
+    expect(seen.drafts[0]).not.toHaveProperty('finishing'); // las tarjetas no llevan terminación
     expect(seen.drafts[0]).not.toHaveProperty('widthMm');
     expect(seen.drafts[0]).not.toHaveProperty('heightMm');
 
@@ -139,8 +154,7 @@ test.describe('recorrido completo', () => {
   test('la pantalla final muestra el resumen y un enlace a WhatsApp con el número de pedido', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
-    await fillOrder(page);
-    await page.locator('#cantidad').fill('250');
+    await fillOrder(page, { quantity: '250' });
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
     await expect(page.locator('#numero-pedido')).toHaveText('P-2026-0001');
 
@@ -200,10 +214,63 @@ test.describe('producto', () => {
     await expect(page.locator('#spec')).toHaveCount(0);
   });
 
-  test('las terminaciones son solo ojales y bolsillo u otra', async ({ page }) => {
+  test('ojales y bolsillos son dos opciones separadas que solo aparecen con el banner', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
-    await expect(page.locator('#terminacion option')).toHaveText(['Sin terminación', 'Ojales y bolsillo', 'Otra (la aclaro abajo)']);
+    for (const other of ['Tarjetas', 'Vinilo', 'Lona']) {
+      await page.getByRole('radio', { name: other }).check();
+      await siguiente(page);
+      await expect(page.locator('#cantidad')).toBeVisible();
+      await expect(page.locator('#terminacion-grupo'), other).toBeHidden();
+      await page.getByRole('button', { name: /Atrás/ }).click();
+    }
+    await page.getByRole('radio', { name: 'Banner' }).check();
+    await siguiente(page);
+    await expect(page.locator('#terminacion-grupo')).toBeVisible();
+    await expect(page.getByLabel('Ojales')).toBeVisible();
+    await expect(page.getByLabel('Bolsillos')).toBeVisible();
+    await expect(page.getByLabel('Ojales')).not.toBeChecked();
+    await expect(page.getByLabel('Bolsillos')).not.toBeChecked();
+  });
+
+  for (const [choice, expected] of [
+    [['Ojales'], 'Ojales'],
+    [['Bolsillos'], 'Bolsillos'],
+    [['Ojales', 'Bolsillos'], 'Ojales y Bolsillos'],
+  ]) {
+    test(`banner con ${choice.join(' y ')}: el sistema de pedidos recibe finishing "${expected}"`, async ({ page }) => {
+      const seen = await mockServer(page);
+      await page.goto('/pedido.html');
+      await fillOrder(page, { product: 'Banner', finishing: choice });
+      await page.getByRole('button', { name: /Enviar pedido/ }).click();
+      await expect(page.locator('#numero-pedido')).toBeVisible();
+      expect(seen.drafts[0]).toMatchObject({ product: 'banner', finishing: expected });
+      await expect(page.locator('#resumen')).toContainText(expected);
+    });
+  }
+
+  test('banner sin terminación: no se manda el campo', async ({ page }) => {
+    const seen = await mockServer(page);
+    await page.goto('/pedido.html');
+    await fillOrder(page, { product: 'Banner' });
+    await page.getByRole('button', { name: /Enviar pedido/ }).click();
+    await expect(page.locator('#numero-pedido')).toBeVisible();
+    expect(seen.drafts[0].product).toBe('banner');
+    expect(seen.drafts[0]).not.toHaveProperty('finishing');
+  });
+
+  test('si se marcó una terminación y después se cambia de producto, no viaja en el pedido', async ({ page }) => {
+    const seen = await mockServer(page);
+    await page.goto('/pedido.html');
+    await page.getByRole('radio', { name: 'Banner' }).check();
+    await siguiente(page);
+    await page.getByLabel('Ojales').check();
+    await page.getByRole('button', { name: /Atrás/ }).click();
+    await fillOrder(page, { product: 'Tarjetas' });
+    await page.getByRole('button', { name: /Enviar pedido/ }).click();
+    await expect(page.locator('#numero-pedido')).toBeVisible();
+    expect(seen.drafts[0]).toMatchObject({ product: 'tarjetas' });
+    expect(seen.drafts[0]).not.toHaveProperty('finishing');
   });
 
   test('en pedido.html no hay botones de WhatsApp que distraigan', async ({ page }) => {
@@ -216,18 +283,53 @@ test.describe('producto', () => {
 });
 
 test.describe('validaciones antes de enviar', () => {
-  test('enviar vacío marca los campos, lleva el foco al primero y no manda nada al servidor', async ({ page }) => {
+  test('cada paso pide lo suyo antes de dejar avanzar, con el error a la vista y el foco en el campo', async ({ page }) => {
     const seen = await mockServer(page);
     await page.goto('/pedido.html');
-    await page.getByRole('button', { name: /Enviar pedido/ }).click();
+    await expect(page.locator('#paso-actual')).toContainText('Paso 1 de 4');
 
+    await siguiente(page);
     await expect(page.locator('#producto-error')).toHaveText('Elegí qué querés imprimir.');
+    await expect(page.getByRole('radio', { name: 'Tarjetas' })).toBeFocused();
+    await expect(page.locator('#paso-actual')).toContainText('Paso 1 de 4');
+
+    await page.getByRole('radio', { name: 'Tarjetas' }).check();
+    await siguiente(page);
+    await expect(page.locator('#paso-actual')).toContainText('Paso 2 de 4');
+    await page.locator('#cantidad').fill('0');
+    await siguiente(page);
+    await expect(page.locator('#cantidad-error')).not.toBeEmpty();
+    await expect(page.locator('#cantidad')).toBeFocused();
+    await page.locator('#cantidad').fill('3');
+    await siguiente(page);
+
+    await expect(page.locator('#paso-actual')).toContainText('Paso 3 de 4');
+    await siguiente(page);
     await expect(page.locator('#archivos-error')).toHaveText('Elegí al menos un archivo.');
+    await page.locator('#archivos').setInputFiles(bytes(1000));
+    await siguiente(page);
+
+    await expect(page.locator('#paso-actual')).toContainText('Paso 4 de 4');
+    await expect(page.getByRole('button', { name: /Siguiente/ })).toBeHidden();
+    await page.getByRole('button', { name: /Enviar pedido/ }).click();
     await expect(page.locator('#nombre-error')).toHaveText('Contanos tu nombre.');
     await expect(page.locator('#contacto-error')).toContainText('email o WhatsApp');
     await expect(page.locator('#consentimiento-error')).toContainText('política de privacidad');
-    await expect(page.getByRole('radio', { name: 'Tarjetas' })).toBeFocused();
     expect(seen.drafts).toHaveLength(0);
+  });
+
+  test('Atrás vuelve al paso anterior sin perder lo que ya se cargó', async ({ page }) => {
+    await mockServer(page);
+    await page.goto('/pedido.html');
+    await fillOrder(page, { quantity: '120' });
+    await page.getByRole('button', { name: /Atrás/ }).click(); // al paso 3
+    await expect(page.locator('#paso-actual')).toContainText('Paso 3 de 4');
+    await expect(page.locator('#lista-archivos li')).toHaveCount(1);
+    await page.getByRole('button', { name: /Atrás/ }).click(); // al paso 2
+    await expect(page.locator('#cantidad')).toHaveValue('120');
+    await page.getByRole('button', { name: /Atrás/ }).click(); // al paso 1
+    await expect(page.getByRole('radio', { name: 'Tarjetas' })).toBeChecked();
+    await expect(page.getByRole('button', { name: /Atrás/ })).toBeHidden();
   });
 
   test('sin tildar el consentimiento no se envía', async ({ page }) => {
@@ -254,6 +356,9 @@ test.describe('validaciones antes de enviar', () => {
   test('un error se borra al corregir el campo', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
+    await irAArchivos(page);
+    await page.locator('#archivos').setInputFiles(bytes(1000));
+    await siguiente(page);
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
     await expect(page.locator('#nombre-error')).not.toBeEmpty();
     await page.locator('#nombre').fill('Ana');
@@ -275,6 +380,7 @@ test.describe('archivos', () => {
   test('un .cdr se rechaza al elegirlo, con la guía para exportar a PDF, y no queda en la lista', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
+    await irAArchivos(page);
     await page.locator('#archivos').setInputFiles({ name: 'logo.cdr', mimeType: 'application/octet-stream', buffer: Buffer.alloc(1000) });
     await expect(page.locator('#archivos-error')).toContainText('CorelDRAW');
     await expect(page.locator('#archivos-error')).toContainText('PDF');
@@ -284,6 +390,7 @@ test.describe('archivos', () => {
   test('de un grupo, los válidos entran y los inválidos se informan por nombre', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
+    await irAArchivos(page);
     await page.locator('#archivos').setInputFiles([bytes(1000), { name: 'virus.exe', mimeType: 'application/octet-stream', buffer: Buffer.alloc(10) }]);
     await expect(page.locator('#lista-archivos li')).toHaveCount(1);
     await expect(page.locator('#archivos-error')).toContainText('virus.exe');
@@ -292,6 +399,7 @@ test.describe('archivos', () => {
   test('el sexto archivo no entra: el máximo es 5', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
+    await irAArchivos(page);
     const files = Array.from({ length: 6 }, (_, i) => ({ name: `a${i}.jpg`, mimeType: 'image/jpeg', buffer: Buffer.alloc(100 + i) }));
     await page.locator('#archivos').setInputFiles(files);
     await expect(page.locator('#lista-archivos li')).toHaveCount(5);
@@ -301,6 +409,7 @@ test.describe('archivos', () => {
   test('se puede quitar un archivo de la lista', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
+    await irAArchivos(page);
     await page.locator('#archivos').setInputFiles(bytes(1000));
     await page.getByRole('button', { name: 'Quitar arte.jpg' }).click();
     await expect(page.locator('#lista-archivos li')).toHaveCount(0);
@@ -309,6 +418,7 @@ test.describe('archivos', () => {
   test('el mismo archivo elegido dos veces no se duplica', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
+    await irAArchivos(page);
     await page.locator('#archivos').setInputFiles(bytes(1000));
     await page.locator('#archivos').setInputFiles(bytes(1000));
     await expect(page.locator('#lista-archivos li')).toHaveCount(1);
@@ -317,6 +427,7 @@ test.describe('archivos', () => {
   test('un nombre de archivo con HTML se muestra como texto, nunca se interpreta', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
+    await irAArchivos(page);
     await page.locator('#archivos').setInputFiles({ name: '<img src=x onerror=alert(1)>.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(100) });
     await expect(page.locator('#lista-archivos .file-name')).toHaveText('<img src=x onerror=alert(1)>.jpg');
     await expect(page.locator('#lista-archivos img')).toHaveCount(0);
@@ -387,6 +498,9 @@ test.describe('cuando algo sale mal', () => {
     await page.goto('/pedido.html');
     await fillOrder(page);
     await page.getByRole('button', { name: /Enviar pedido/ }).click();
+    // El error es de un paso anterior: el formulario vuelve a ese paso para que se vea.
+    await expect(page.locator('#paso-actual')).toContainText('Paso 2 de 4');
+    await expect(page.locator('#cantidad-error')).toBeVisible();
     await expect(page.locator('#cantidad-error')).toHaveText('La cantidad no es válida');
     await expect(page.locator('#cantidad')).toHaveAttribute('aria-invalid', 'true');
   });
@@ -414,26 +528,38 @@ test.describe('cuando algo sale mal', () => {
 
 test.describe('accesibilidad y diseño', () => {
   for (const width of [360, 1280]) {
-    test(`a ${width}px todo control mide al menos 44 × 44 px y no hay scroll horizontal`, async ({ page }) => {
+    test(`a ${width}px, en los cuatro pasos, todo control mide al menos 44 × 44 px y no hay scroll horizontal`, async ({ page }) => {
       await mockServer(page);
       await page.setViewportSize({ width, height: 800 });
       await page.goto('/pedido.html');
-      await expect(page.getByRole('radio', { name: 'Tarjetas' })).toBeVisible();
+      await expect(page.getByRole('radio', { name: 'Banner' })).toBeVisible();
+      const medir = () =>
+        page.evaluate(() => {
+          const visible = (el) => {
+            const r = el.getBoundingClientRect();
+            return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
+          };
+          const small = [...document.querySelectorAll('a[href], button, input, textarea, select')]
+            .filter(visible)
+            .map((el) => ({ name: el.id || el.getAttribute('aria-label') || el.textContent.trim().slice(0, 30), r: el.getBoundingClientRect() }))
+            .filter(({ r }) => Math.round(r.width) < 44 || Math.round(r.height) < 44)
+            .map(({ name, r }) => `${name} ${Math.round(r.width)}×${Math.round(r.height)}`);
+          return { small, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+        });
+      const resultados = [];
+      await page.getByRole('radio', { name: 'Banner' }).check();
+      resultados.push(await medir());
+      await siguiente(page);
+      resultados.push(await medir()); // incluye ojales y bolsillos
+      await siguiente(page);
       await page.locator('#archivos').setInputFiles(bytes(1000));
-      const small = await page.evaluate(() => {
-        const visible = (el) => {
-          const r = el.getBoundingClientRect();
-          return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
-        };
-        return [...document.querySelectorAll('a[href], button, input, textarea, select')]
-          .filter(visible)
-          .map((el) => ({ name: el.id || el.getAttribute('aria-label') || el.textContent.trim().slice(0, 30), r: el.getBoundingClientRect() }))
-          .filter(({ r }) => Math.round(r.width) < 44 || Math.round(r.height) < 44)
-          .map(({ name, r }) => `${name} ${Math.round(r.width)}×${Math.round(r.height)}`);
-      });
-      expect(small).toEqual([]);
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      expect(overflow).toBeLessThanOrEqual(0);
+      resultados.push(await medir());
+      await siguiente(page);
+      resultados.push(await medir());
+      for (const { small, overflow } of resultados) {
+        expect(small).toEqual([]);
+        expect(overflow).toBeLessThanOrEqual(0);
+      }
     });
   }
 
@@ -455,12 +581,18 @@ test.describe('accesibilidad y diseño', () => {
     expect(missing).toEqual([]);
   });
 
-  test('se puede completar y enviar solo con el teclado', async ({ page }) => {
+  test('se puede elegir producto y avanzar de paso solo con el teclado', async ({ page }) => {
     await mockServer(page);
     await page.goto('/pedido.html');
     await page.getByRole('radio', { name: 'Tarjetas' }).focus();
     await page.keyboard.press('Space');
     await expect(page.getByRole('radio', { name: 'Tarjetas' })).toBeChecked();
+    await page.getByRole('button', { name: /Siguiente/ }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#paso-actual')).toContainText('Paso 2 de 4');
+    // Al cambiar de paso el foco va al título del paso, para que un lector de pantalla lo anuncie.
+    await expect(page.getByRole('group', { name: '¿Cuántas necesitás?' })).toBeVisible();
+    await expect(page.locator('#cantidad')).toBeVisible();
   });
 
   test('al enviar se abre un diálogo que explica que se están subiendo los archivos, y se cierra al terminar', async ({ page }) => {
@@ -512,6 +644,7 @@ test('desde el inicio, "Adjuntar archivo / Arte final" lleva al formulario de pe
 test('la política de privacidad se abre desde el formulario y desde el pie', async ({ page }) => {
   await mockServer(page);
   await page.goto('/pedido.html');
+  await fillOrder(page);
   const popup = page.waitForEvent('popup');
   await page.getByRole('link', { name: 'Leer la política de privacidad' }).click();
   expect((await popup).url()).toMatch(/\/privacidad\.html$/);

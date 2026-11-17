@@ -27,4 +27,5 @@
 
 ## Notas
 
-- Los precios no están publicados: cada trabajo se cotiza por WhatsApp o por el formulario del sitio.
+- Cada trabajo se cotiza por WhatsApp o por el formulario del sitio.
+- Las promos de temporada (por ejemplo, las de Navidad y Año Nuevo) se publican en el inicio, con su precio y su fecha de vencimiento. Pasada esa fecha dejan de mostrarse.

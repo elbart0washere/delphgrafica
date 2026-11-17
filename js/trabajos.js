@@ -3,6 +3,8 @@
 // El HTML ya trae 6 fotos (las copia scripts/sync-gallery.mjs al construir) para Google y para quien no tiene JavaScript;
 // acá se cambian por una muestra distinta en cada visita. Si algo falla, esas 6 quedan como están.
 import { shuffle } from './shuffle.js';
+import { initPromos } from './promos.js';
+import { initNieve } from './nieve.js';
 
 const COUNT = 6;
 
@@ -54,3 +56,5 @@ export async function initTrabajos(document = globalThis.document, load = loadPo
 }
 
 initTrabajos();
+initPromos();
+initNieve();
